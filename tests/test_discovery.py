@@ -1,0 +1,33 @@
+from __future__ import annotations
+
+from pathlib import Path
+from textwrap import dedent
+
+from agent_docstrings import core
+
+
+def test_discover_and_process_files_updates_header(tmp_path: Path) -> None:
+    """Checks that the discovery logic finds and processes supported files."""
+    # * Arrange: create a temporary directory with a Python file lacking a header.
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+
+    code = dedent(
+        """
+        class Answer:
+            def get(self):
+                return 42
+        """
+    ).lstrip()
+
+    file_path = src_dir / "answer.py"
+    file_path.write_text(code, encoding="utf-8")
+
+    # * Act: process the directory.
+    core.discover_and_process_files([str(src_dir)], verbose=False)
+
+    # * Assert: the file now contains the generated header.
+    processed = file_path.read_text(encoding="utf-8")
+    assert "Classes/Functions:" in processed
+    # * The header should list the class *Answer* in the header block.
+    assert "- Answer" in processed 

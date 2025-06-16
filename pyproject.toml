@@ -29,4 +29,12 @@ classifiers = [
 ]
 
 [project.scripts]
-agent-docstrings = "agent_docstrings.cli:main" 
+agent-docstrings = "agent_docstrings.cli:main"
+
+[project.optional-dependencies]
+# ! Provides dependencies required for running the test-suite
+# ! Developers should install them via `pip install .[testing]`.
+testing = [
+    "pytest>=7.4",
+    "pytest-cov>=4.0",
+] 
