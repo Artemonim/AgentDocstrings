@@ -1,3 +1,8 @@
+"""
+    Classes/Functions:
+      - Functions:
+        - main() (line 14)
+"""
 import argparse
 import sys
 from pathlib import Path

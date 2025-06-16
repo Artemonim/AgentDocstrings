@@ -1,3 +1,11 @@
+"""
+    Classes/Functions:
+    - SignatureInfo (line 15):
+    - ClassInfo (line 21):
+    - CommentStyle (line 29):
+      - Functions:
+        - strip_existing_header(text: str, language: str) -> str (line 46)
+"""
 from __future__ import annotations
 
 import re

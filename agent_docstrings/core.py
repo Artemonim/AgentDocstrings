@@ -1,3 +1,9 @@
+"""
+    Classes/Functions:
+      - Functions:
+        - process_file(path: Path, verbose: bool = False) -> None (line 94)
+        - discover_and_process_files(directories: List[str], verbose: bool = False) -> None (line 147)
+"""
 from __future__ import annotations
 import os
 from pathlib import Path
