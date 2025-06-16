@@ -1,0 +1,161 @@
+from __future__ import annotations
+import os
+from pathlib import Path
+from typing import List, Callable, Dict, Tuple
+
+from .languages.common import (
+    COMMENT_STYLES,
+    ClassInfo,
+    SignatureInfo,
+    strip_existing_header,
+)
+from .languages import generic, kotlin, python
+
+# Mappings from file extension to language name and parser function
+EXT_TO_LANG: Dict[str, str] = {
+    ".py": "python",
+    ".kt": "kotlin",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".cs": "csharp",
+    ".cpp": "cpp",
+    ".cxx": "cpp",
+    ".cc": "cpp",
+    ".hpp": "cpp",
+    ".h": "cpp",
+}
+
+LANG_PARSERS: Dict[str, Callable[[List[str]], Tuple[List[ClassInfo], List[SignatureInfo]]]] = {
+    "python": python.parse_python_file,
+    "kotlin": kotlin.parse_kotlin_file,
+    "javascript": lambda lines: generic.parse_generic_file(lines, "javascript"),
+    "typescript": lambda lines: generic.parse_generic_file(lines, "typescript"),
+    "csharp": lambda lines: generic.parse_generic_file(lines, "csharp"),
+    "cpp": lambda lines: generic.parse_generic_file(lines, "cpp"),
+}
+
+
+def _format_header(
+    classes: List[ClassInfo],
+    functions: List[SignatureInfo],
+    language: str,
+    header_line_count: int,
+) -> str:
+    """Return a formatted header block for *language*.
+
+    Args:
+        classes (List[ClassInfo]): Parsed class hierarchy.
+        functions (List[SignatureInfo]): Top-level functions.
+        language (str): Canonical language identifier.
+        header_line_count (int): Number of lines occupied by the header
+            itself (including delimiters). Used to offset original line
+            numbers so the recorded positions match the file *after*
+            insertion.
+
+    Returns:
+        str: Fully-formed comment block ready to be written to the file.
+    """
+    style = COMMENT_STYLES[language]
+    header_lines: List[str] = [f"{style.prefix}Classes/Functions:"]
+
+    def format_class(ci: ClassInfo, indent_level: int):
+        indent = style.prefix + "  " * indent_level
+        # Add the header line count to the original line number
+        corrected_line = ci.line + header_line_count
+        header_lines.append(f"{indent}- {ci.name} (line {corrected_line}):")
+        for method in ci.methods:
+            corrected_method_line = method.line + header_line_count
+            header_lines.append(f"{indent}  - {method.signature} (line {corrected_method_line})")
+        for inner in ci.inner_classes:
+            format_class(inner, indent_level + 1)
+
+    for ci in classes:
+        format_class(ci, 0)
+
+    if functions:
+        header_lines.append(f"{style.prefix}  - Functions:")
+        for func in functions:
+            corrected_func_line = func.line + header_line_count
+            header_lines.append(f"{style.prefix}    - {func.signature} (line {corrected_func_line})")
+
+    # Wrap in comment block
+    full_header_text = [style.start] + header_lines + [style.end]
+    return "\n".join(full_header_text)
+
+
+def process_file(path: Path, verbose: bool = False) -> None:
+    """Generate or refresh the header comment for *path*.
+
+    Args:
+        path (Path): Absolute or relative path to a source file.
+        verbose (bool, optional): If *True*, progress messages are printed
+            to *stdout*. Defaults to *False*.
+    """
+    ext = path.suffix.lower()
+    if ext not in EXT_TO_LANG:
+        return
+
+    language = EXT_TO_LANG[ext]
+    parser = LANG_PARSERS[language]
+
+    try:
+        original_content = path.read_text(encoding="utf-8", errors="ignore")
+        content_no_header = strip_existing_header(original_content, language)
+        lines = content_no_header.splitlines()
+
+        classes, functions = parser(lines)
+
+        if not classes and not functions:
+            if verbose:
+                print(f"Skipping {path} (no classes or functions found)")
+            return
+
+        # A preliminary header is needed to calculate its own line count for adjustments.
+        preliminary_header = _format_header(classes, functions, language, 0)
+        header_line_count = preliminary_header.count("\n") + 1
+
+        # Now, format the final header with corrected line numbers.
+        final_header = _format_header(classes, functions, language, header_line_count)
+
+        # Re-add shebang if it was stripped with the header
+        shebang = ""
+        if original_content.startswith("#!"):
+            shebang = original_content.splitlines()[0] + "\n"
+            content_no_header = content_no_header.lstrip().split("\n", 1)[-1]
+        
+        new_content = f"{shebang}{final_header}\n{content_no_header}"
+
+        if new_content.strip() != original_content.strip():
+            path.write_text(new_content, encoding="utf-8")
+            if verbose:
+                print(f"Processed {language.capitalize()}: {path}")
+        elif verbose:
+            print(f"No changes for: {path}")
+
+    except Exception as e:
+        print(f"Error processing {path}: {e}")
+
+
+def discover_and_process_files(directories: List[str], verbose: bool = False) -> None:
+    """Recursively process all supported files inside *directories*.
+
+    Args:
+        directories (List[str]): White-list of root folders to scan.
+        verbose (bool, optional): Enables per-file logging when *True*.
+    """
+    for dir_str in directories:
+        directory = Path(dir_str)
+        if not directory.is_dir():
+            print(f"Warning: '{dir_str}' is not a valid directory. Skipping.")
+            continue
+
+        for root, _, files in os.walk(directory):
+            # Simple skip for common non-source directories
+            if any(part in {".git", ".venv", "node_modules", "build", "dist"} for part in Path(root).parts):
+                continue
+
+            for file in files:
+                file_path = Path(root) / file
+                process_file(file_path, verbose) 

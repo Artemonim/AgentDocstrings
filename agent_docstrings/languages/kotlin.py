@@ -1,0 +1,69 @@
+from __future__ import annotations
+import re
+from typing import List
+
+from .common import ClassInfo, SignatureInfo
+
+KOTLIN_CLASS_RE = re.compile(r"^\s*(?:public|protected|private|internal)?\s*(?:data|sealed|enum)?\s*class\s+(\w+)")
+KOTLIN_FUN_RE = re.compile(
+    r"^\s*(?:public|protected|private|internal|override)?\s*fun\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*([\w<>,\s]+))?"
+)
+
+def parse_kotlin_file(
+    lines: List[str],
+) -> tuple[List[ClassInfo], List[SignatureInfo]]:
+    """Parse Kotlin source and extract structural information.
+
+    Args:
+        lines (List[str]): Kotlin source broken into individual lines.
+
+    Returns:
+        Tuple[List[ClassInfo], List[SignatureInfo]]: Nested classes and
+        top-level function signatures discovered in the file.
+    """
+    classes: List[ClassInfo] = []
+    top_level_funcs: List[SignatureInfo] = []
+    class_stack: List[ClassInfo] = []
+    # Using brace counting for scope is a simplification.
+    brace_level = 0
+    scope_entry_levels: List[int] = []
+
+    for line_num, line in enumerate(lines, 1):
+        stripped = line.strip()
+
+        # Update scope
+        if "{" in stripped:
+            brace_level += stripped.count("{")
+        if "}" in stripped:
+            brace_level -= stripped.count("}")
+
+        # Check if we are exiting a class
+        if class_stack and scope_entry_levels and brace_level < scope_entry_levels[-1]:
+            class_stack.pop()
+            scope_entry_levels.pop()
+
+        # Match class
+        class_match = KOTLIN_CLASS_RE.match(line)
+        if class_match:
+            class_name = class_match.group(1)
+            new_class = ClassInfo(name=class_name, line=line_num, methods=[], inner_classes=[])
+            if class_stack:
+                class_stack[-1].inner_classes.append(new_class)
+            else:
+                classes.append(new_class)
+            class_stack.append(new_class)
+            # Record the brace level upon entering this class scope
+            scope_entry_levels.append(brace_level + line.count("{"))
+            continue
+
+        # Match function
+        fun_match = KOTLIN_FUN_RE.match(line)
+        if fun_match:
+            signature = stripped.split("{")[0].strip()
+            info = SignatureInfo(signature=signature, line=line_num)
+            if class_stack:
+                class_stack[-1].methods.append(info)
+            else:
+                top_level_funcs.append(info)
+
+    return classes, top_level_funcs 
