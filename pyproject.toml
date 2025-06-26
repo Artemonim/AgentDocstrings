@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "agent-docstrings"
 version = "0.1.0"
 description = "A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions."
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
 authors = [
     { name = "Your Name", email = "your@email.com" } # ! TODO: Please update this
@@ -37,4 +37,9 @@ agent-docstrings = "agent_docstrings.cli:main"
 testing = [
     "pytest>=7.4",
     "pytest-cov>=4.0",
-] 
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yourname/agent-docstrings"
+"Source" = "https://github.com/yourname/agent-docstrings"
+"Tracker" = "https://github.com/yourname/agent-docstrings/issues" 
