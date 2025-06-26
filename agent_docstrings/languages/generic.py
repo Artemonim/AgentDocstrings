@@ -58,9 +58,13 @@ def parse_generic_file(
         if not stripped_line:
             continue
 
+        # Store balance before this line is processed
+        pre_line_brace_balance = brace_balance
+
         # Very basic brace counting to track class scope.
         open_braces = line.count("{")
         close_braces = line.count("}")
+        brace_balance += open_braces - close_braces
 
         if class_stack and brace_balance > 0:
             if brace_balance == brace_stack[-1]:
@@ -82,22 +86,21 @@ def parse_generic_file(
                 classes.append(new_class)
             class_stack.append(new_class)
             if "{" in line:
-                brace_balance += line.count("{")
                 brace_stack.append(brace_balance)
             continue
 
-        func_match = func_re.match(line)
-        if func_match:
-            # Simplified signature extraction
-            signature = stripped_line.split("{")[0].strip()
-            info = SignatureInfo(signature=signature, line=line_num)
-            if class_stack:
-                # This is a very rough approximation and might misclassify methods
-                # as belonging to outer classes in complex nested scenarios.
-                class_stack[-1].methods.append(info)
-            else:
-                top_level_funcs.append(info)
-
-        brace_balance += open_braces - close_braces
+        # Only look for functions at the top-level (not inside another block)
+        if pre_line_brace_balance == 0:
+            func_match = func_re.match(line)
+            if func_match:
+                # Simplified signature extraction
+                signature = stripped_line.split("{")[0].strip()
+                info = SignatureInfo(signature=signature, line=line_num)
+                if class_stack:
+                    # This is a very rough approximation and might misclassify methods
+                    # as belonging to outer classes in complex nested scenarios.
+                    class_stack[-1].methods.append(info)
+                else:
+                    top_level_funcs.append(info)
 
     return classes, top_level_funcs 

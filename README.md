@@ -42,6 +42,11 @@ agent-docstrings path/to/your/project/src another/path/to/process
 | TypeScript | `.ts`, `.tsx`                       | TSDoc `/** */`     |
 | C#         | `.cs`                               | Block `/* */`      |
 | C++        | `.cpp`, `.cxx`, `.cc`, `.hpp`, `.h` | Block `/* */`      |
+| C          | `.c`, `.h`                          | Block `/* */`      |
+| Java       | `.java`                             | Javadoc `/** */`   |
+| Go         | `.go`                               | Block `/* */`      |
+| PowerShell | `.ps1`, `.psm1`                     | Block `<# #>`      |
+| Delphi     | `.pas`                              | Block `(* *)`      |
 
 ## Contributing
 

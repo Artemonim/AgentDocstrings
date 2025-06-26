@@ -15,7 +15,7 @@ from .languages.common import (
     SignatureInfo,
     strip_existing_header,
 )
-from .languages import generic, kotlin, python
+from .languages import generic, kotlin, python, java, go, powershell, delphi
 
 # Mappings from file extension to language name and parser function
 EXT_TO_LANG: Dict[str, str] = {
@@ -31,6 +31,12 @@ EXT_TO_LANG: Dict[str, str] = {
     ".cc": "cpp",
     ".hpp": "cpp",
     ".h": "cpp",
+    ".c": "c",
+    ".java": "java",
+    ".go": "go",
+    ".ps1": "powershell",
+    ".psm1": "powershell",
+    ".pas": "delphi",
 }
 
 LANG_PARSERS: Dict[str, Callable[[List[str]], Tuple[List[ClassInfo], List[SignatureInfo]]]] = {
@@ -40,6 +46,11 @@ LANG_PARSERS: Dict[str, Callable[[List[str]], Tuple[List[ClassInfo], List[Signat
     "typescript": lambda lines: generic.parse_generic_file(lines, "typescript"),
     "csharp": lambda lines: generic.parse_generic_file(lines, "csharp"),
     "cpp": lambda lines: generic.parse_generic_file(lines, "cpp"),
+    "c": lambda lines: generic.parse_generic_file(lines, "cpp"),  # C can be parsed like C++ (for functions)
+    "java": java.parse_java_file,
+    "go": go.parse_go_file,
+    "powershell": powershell.parse_powershell_file,
+    "delphi": delphi.parse_delphi_file,
 }
 
 

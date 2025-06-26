@@ -1,0 +1,43 @@
+from __future__ import annotations
+import re
+from typing import List, Tuple
+
+from .common import ClassInfo, SignatureInfo
+
+# PowerShell function regex
+# e.g., function My-Function {
+# e.g., function My-Function([string]$Param1) {
+POWERSHELL_FUNC_RE = re.compile(
+    r"^\s*function\s+([\w-]+)"
+)
+
+
+def parse_powershell_file(
+    lines: List[str],
+) -> tuple[List[ClassInfo], List[SignatureInfo]]:
+    """Parse *lines* and extract functions from a PowerShell script.
+
+    This is a simplified parser focusing on top-level functions.
+
+    Args:
+        lines (List[str]): Source code split into individual lines.
+
+    Returns:
+        Tuple[List[ClassInfo], List[SignatureInfo]]: Top-level functions.
+        Classes will always be an empty list.
+    """
+    classes: List[ClassInfo] = []  # Ignoring classes for simplicity
+    top_level_funcs: List[SignatureInfo] = []
+
+    for line_num, line in enumerate(lines, 1):
+        stripped_line = line.strip()
+        if not stripped_line:
+            continue
+
+        func_match = POWERSHELL_FUNC_RE.match(line)
+        if func_match:
+            signature = stripped_line.split("{")[0].strip()
+            info = SignatureInfo(signature=signature, line=line_num)
+            top_level_funcs.append(info)
+
+    return classes, top_level_funcs 

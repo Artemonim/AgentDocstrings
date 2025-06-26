@@ -1,0 +1,95 @@
+from __future__ import annotations
+import re
+from typing import List, Tuple
+
+from .common import ClassInfo, SignatureInfo
+
+# Delphi (Object Pascal) regexes
+# Note: These are simplified and might not cover all syntax variations.
+DELPHI_CLASS_RE = re.compile(
+    r"^\s*(\w+)\s*=\s*(?:class|type)\s*(?:\(([^)]+)\))?", re.IGNORECASE
+)
+DELPHI_PROCEDURE_RE = re.compile(
+    r"^\s*(?:procedure)\s+([\w\.]+)\s*(\([^)]*\))?\s*;", re.IGNORECASE
+)
+DELPHI_FUNCTION_RE = re.compile(
+    r"^\s*(?:function)\s+([\w\.]+)\s*(\([^)]*\))?\s*:\s*[\w\.]+\s*;", re.IGNORECASE
+)
+
+
+def parse_delphi_file(
+    lines: List[str],
+) -> tuple[List[ClassInfo], List[SignatureInfo]]:
+    """Parse *lines* and extract structural information for a Delphi/Pascal file.
+
+    This parser uses 'begin' and 'end' to track scopes, which is a rough
+    approximation.
+
+    Args:
+        lines (List[str]): Source code split into individual lines.
+
+    Returns:
+        A tuple containing lists of classes and top-level functions/procedures.
+    """
+    classes: List[ClassInfo] = []
+    top_level_funcs: List[SignatureInfo] = []
+    class_stack: List[ClassInfo] = []
+    scope_balance: int = 0  # Using 'begin' and 'end'
+    scope_stack: List[int] = []
+
+    for line_num, line in enumerate(lines, 1):
+        stripped_line = line.strip()
+        if not stripped_line or stripped_line.startswith(("{", "}", "//")):
+            continue
+
+        lower_line = stripped_line.lower()
+
+        # Scope tracking with begin/end
+        if class_stack and scope_stack:
+            if "end;" in lower_line:
+                scope_balance -= 1
+                if scope_balance < scope_stack[-1]:
+                    class_stack.pop()
+                    scope_stack.pop()
+
+        if "begin" in lower_line:
+            scope_balance += 1
+
+        class_match = DELPHI_CLASS_RE.match(stripped_line)
+        if class_match and "class" in lower_line:
+            class_name = class_match.group(1)
+            new_class = ClassInfo(name=class_name, line=line_num, methods=[], inner_classes=[])
+            if class_stack:
+                class_stack[-1].inner_classes.append(new_class)
+            else:
+                classes.append(new_class)
+            class_stack.append(new_class)
+            scope_stack.append(scope_balance)
+            continue
+
+        proc_match = DELPHI_PROCEDURE_RE.match(stripped_line)
+        if proc_match:
+            proc_name = proc_match.group(1)
+            if "." in proc_name:  # It's a method implementation, not a top-level function
+                continue
+            signature = proc_match.group(0)
+            info = SignatureInfo(signature=signature, line=line_num)
+            if class_stack:
+                class_stack[-1].methods.append(info)
+            else:
+                top_level_funcs.append(info)
+            continue
+
+        func_match = DELPHI_FUNCTION_RE.match(stripped_line)
+        if func_match:
+            func_name = func_match.group(1)
+            if "." in func_name:  # It's a method implementation, not a top-level function
+                continue
+            signature = func_match.group(0)
+            info = SignatureInfo(signature=signature, line=line_num)
+            if class_stack:
+                class_stack[-1].methods.append(info)
+            else:
+                top_level_funcs.append(info)
+
+    return classes, top_level_funcs 

@@ -263,3 +263,148 @@ class TestErrorHandling:
         classes, funcs = parse_python_file(source)
         assert len(funcs) == 1
         assert "long_function" in funcs[0].signature 
+
+
+class TestMoreLanguages:
+    """Tests for newly added language parsers."""
+
+    def test_c_parsing(self):
+        """Test C function parsing using the generic C++ parser."""
+        source = dedent("""
+            #include <stdio.h>
+
+            int main(int argc, char *argv[]) {
+                printf("Hello, World!\\n");
+                return 0;
+            }
+
+            void my_function() {
+                // do nothing
+            }
+        """).strip()
+        classes, funcs = parse_generic_file(source.splitlines(), "cpp")
+        assert classes == []
+        assert funcs == [
+            SignatureInfo(signature="int main(int argc, char *argv[])", line=3),
+            SignatureInfo(signature="void my_function()", line=8),
+        ]
+
+    def test_java_parsing(self):
+        """Test Java class and method parsing."""
+        source = dedent("""
+            package com.example;
+
+            public class MyClass {
+                public static void main(String[] args) {
+                    System.out.println("Hello");
+                }
+
+                private int calculate(int x, int y) {
+                    return x + y;
+                }
+            }
+        """).strip()
+        from agent_docstrings.languages.java import parse_java_file
+        classes, funcs = parse_java_file(source.splitlines())
+        assert funcs == []
+        assert classes == [
+            ClassInfo(
+                name="MyClass",
+                line=3,
+                methods=[
+                    SignatureInfo(signature="public static void main(String[] args)", line=4),
+                    SignatureInfo(signature="private int calculate(int x, int y)", line=8),
+                ],
+                inner_classes=[],
+            )
+        ]
+
+    def test_go_parsing(self):
+        """Test Go function parsing."""
+        source = dedent("""
+            package main
+
+            import "fmt"
+
+            func hello() {
+                fmt.Println("Hello, World!")
+            }
+
+            func (s *MyStruct) method(arg int) string {
+                return "result"
+            }
+        """).strip()
+        from agent_docstrings.languages.go import parse_go_file
+        classes, funcs = parse_go_file(source.splitlines())
+        assert classes == []
+        assert funcs == [
+            SignatureInfo(signature="func hello()", line=5),
+            SignatureInfo(signature="func (s *MyStruct) method(arg int) string", line=9),
+        ]
+
+    def test_powershell_parsing(self):
+        """Test PowerShell function parsing."""
+        source = dedent("""
+            # My PowerShell Script
+
+            function Get-Greeting {
+                param(
+                    [string]$Name
+                )
+                "Hello, $Name"
+            }
+
+            function Show-Help {
+                Write-Host "This is a help message."
+            }
+        """).strip()
+        from agent_docstrings.languages.powershell import parse_powershell_file
+        classes, funcs = parse_powershell_file(source.splitlines())
+        assert classes == []
+        assert funcs == [
+            SignatureInfo(signature="function Get-Greeting", line=3),
+            SignatureInfo(signature="function Show-Help", line=10),
+        ]
+
+    def test_delphi_parsing(self):
+        """Test Delphi class, procedure, and function parsing."""
+        source = dedent("""
+            unit MyUnit;
+
+            interface
+
+            type
+              TMyClass = class
+              public
+                procedure DoSomething;
+                function GetSomething: integer;
+              end;
+
+            implementation
+
+            procedure TMyClass.DoSomething;
+            begin
+              // do nothing
+            end;
+
+            function TMyClass.GetSomething: integer;
+            begin
+              Result := 1;
+            end;
+
+            end.
+        """).strip()
+        from agent_docstrings.languages.delphi import parse_delphi_file
+        classes, funcs = parse_delphi_file(source.splitlines())
+        assert funcs == []
+        assert classes == [
+            ClassInfo(
+                name="TMyClass",
+                line=6,
+                methods=[
+                    SignatureInfo(signature="procedure DoSomething;", line=8),
+                    SignatureInfo(signature="function GetSomething: integer;", line=9),
+                ],
+                inner_classes=[],
+            )
+        ] 

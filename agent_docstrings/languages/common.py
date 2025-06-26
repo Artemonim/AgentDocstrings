@@ -40,6 +40,11 @@ COMMENT_STYLES: Dict[str, CommentStyle] = {
     "typescript": CommentStyle('/**', ' */', ' * '),
     "csharp": CommentStyle('/*', ' */', ' * '),
     "cpp": CommentStyle('/*', ' */', ' * '),
+    "c": CommentStyle('/*', ' */', ' * '),
+    "java": CommentStyle('/**', ' */', ' * '),
+    "go": CommentStyle('/*', ' */', ' * '),
+    "powershell": CommentStyle('<#', '#>', ' # '),
+    "delphi": CommentStyle('(*', '*)', ' * '),
 }
 
 

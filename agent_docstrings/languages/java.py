@@ -1,0 +1,74 @@
+from __future__ import annotations
+import re
+from typing import List
+
+from .common import ClassInfo, SignatureInfo
+
+JAVA_CLASS_RE = re.compile(
+    r"^\s*(?:public|private|protected|static|final|abstract)?\s*class\s+(\w+)"
+)
+JAVA_METHOD_RE = re.compile(
+    r"^\s*(?:public|private|protected|static|final|synchronized|native|abstract|async)\s+[\w<>\[\],\s]+\s+(\w+)\s*\(([^)]*)\)"
+)
+
+
+def parse_java_file(
+    lines: List[str],
+) -> tuple[List[ClassInfo], List[SignatureInfo]]:
+    """Parse *lines* and extract structural information for a Java file.
+
+    Args:
+        lines (List[str]): Source code split into individual lines.
+
+    Returns:
+        Tuple[List[ClassInfo], List[SignatureInfo]]: Two parallel
+        collections where the first element contains a potentially nested
+        class hierarchy and the second lists top-level functions (not
+        applicable in Java but included for consistency).
+    """
+    classes: List[ClassInfo] = []
+    top_level_funcs: List[SignatureInfo] = []  # Java doesn't have top-level functions
+    class_stack: List[ClassInfo] = []
+    brace_balance: int = 0
+    brace_stack: List[int] = []
+
+    for line_num, line in enumerate(lines, 1):
+        stripped_line = line.strip()
+        if not stripped_line or stripped_line.startswith(("*", "/*", "*/", "/**")):
+            continue
+
+        # Basic brace counting to track class scope.
+        open_braces = line.count("{")
+        close_braces = line.count("}")
+
+        # This logic is a simplified approximation for scope tracking.
+        if class_stack and brace_stack:
+            if brace_balance <= brace_stack[-1] and close_braces > 0:
+                class_stack.pop()
+                brace_stack.pop()
+
+        brace_balance += open_braces - close_braces
+
+        class_match = JAVA_CLASS_RE.match(line)
+        if class_match:
+            class_name = class_match.group(1)
+            new_class = ClassInfo(name=class_name, line=line_num, methods=[], inner_classes=[])
+            if class_stack:
+                class_stack[-1].inner_classes.append(new_class)
+            else:
+                classes.append(new_class)
+            class_stack.append(new_class)
+            if "{" in line:
+                brace_stack.append(brace_balance)
+            continue
+
+        func_match = JAVA_METHOD_RE.match(line)
+        if func_match:
+            signature = stripped_line.split("{")[0].strip()
+            info = SignatureInfo(signature=signature, line=line_num)
+            if class_stack:
+                class_stack[-1].methods.append(info)
+            # No top-level functions in Java
+    
+    # Reverse classes to represent the correct hierarchy (outher first)
+    return classes, top_level_funcs 
