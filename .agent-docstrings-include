@@ -1,0 +1,11 @@
+# Agent Docstrings Whitelist Configuration
+# Only files matching these patterns will be processed
+# If this file exists and is not empty, ONLY these files will be processed
+
+# Main source code
+agent_docstrings/*.py
+agent_docstrings/languages/*.py
+
+# Example: Only process specific modules
+# src/main/*.py
+# lib/core/*.py 

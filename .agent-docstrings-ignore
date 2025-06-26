@@ -1,0 +1,28 @@
+# Agent Docstrings Blacklist Configuration
+# Files and directories to exclude from processing
+
+# Test directories
+tests/
+test_*.py
+
+# Build and cache directories
+__pycache__/
+*.pyc
+build/
+dist/
+*.egg-info/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.bak
+
+# Documentation that shouldn't be auto-generated
+docs/
+README.md
+LICENSE 

@@ -4,11 +4,11 @@
     Do not modify this block directly.
     
     Classes/Functions:
-    - SignatureInfo (line 15):
-    - ClassInfo (line 21):
-    - CommentStyle (line 29):
+    - SignatureInfo (line 22):
+    - ClassInfo (line 28):
+    - CommentStyle (line 36):
       - Functions:
-        - remove_agent_docstring(text: str, language: str) -> str (line 48)
+        - remove_agent_docstring(text: str, language: str) -> str (line 58)
     --- END AUTO-GENERATED DOCSTRING ---
 """
 from __future__ import annotations

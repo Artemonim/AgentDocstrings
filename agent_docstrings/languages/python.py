@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from typing import List
+from typing import List, Tuple, Union, Optional
 
 from .common import ClassInfo, SignatureInfo
 
@@ -10,7 +10,7 @@ PY_FUNC_RE = re.compile(r"^(\s*)def\s+(_?_?[\w]+_?_?)\(([^)]*)\)(?:\s*->\s*([^:]
 
 def parse_python_file(
     lines: List[str],
-) -> tuple[List[ClassInfo], List[SignatureInfo]]:
+) -> Tuple[List[ClassInfo], List[SignatureInfo]]:
     """Parse Python source and extract class/function definitions.
 
     Args:
@@ -23,7 +23,7 @@ def parse_python_file(
     classes: List[ClassInfo] = []
     top_level_funcs: List[SignatureInfo] = []
     
-    current_class_info: ClassInfo | None = None
+    current_class_info: Optional[ClassInfo] = None
     
     for line_num, line in enumerate(lines, 1):
         class_match = PY_CLASS_RE.match(line)

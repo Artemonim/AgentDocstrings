@@ -7,4 +7,4 @@ imported solely for metadata (e.g. by `importlib.metadata`).
 Attributes:
     __version__ (str): Current version of the *agent-docstrings* package.
 """
-__version__ = "0.1.0" 
+__version__ = "1.0.0" 
