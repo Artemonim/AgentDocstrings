@@ -1,24 +1,412 @@
+"""Tests for agent_docstrings.cli module."""
+
 from __future__ import annotations
 
 import sys
 from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 import pytest
 
 import agent_docstrings.cli as cli
 
 
-def test_cli_processes_directory(sample_python_file: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """Ensures the CLI finishes without errors when given a valid directory."""
-    # * Override *sys.argv* so that ``cli.main`` believes it is executed via the
-    # * console entry-point. The first element is conventionally the program
-    # * name.
-    monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(sample_python_file.parent)])
+class TestCLIBasicFunctionality:
+    """Tests for basic CLI functionality."""
 
-    # * ``cli.main`` normally calls :pyfunc:`sys.exit` on failure. If an
-    # * unexpected *SystemExit* is raised, the test will fail automatically.
-    cli.main()
+    def test_cli_processes_directory(self, sample_python_file: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Ensures the CLI finishes without errors when given a valid directory."""
+        # * Override *sys.argv* so that ``cli.main`` believes it is executed via the
+        # * console entry-point. The first element is conventionally the program
+        # * name.
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(sample_python_file.parent)])
 
-    captured = capsys.readouterr()
-    # * The program prints *"Done."* upon successful completion.
-    assert "Done." in captured.out 
+        # * ``cli.main`` normally calls :pyfunc:`sys.exit` on failure. If an
+        # * unexpected *SystemExit* is raised, the test will fail automatically.
+        cli.main()
+
+        captured = capsys.readouterr()
+        # * The program prints *"Done."* upon successful completion.
+        assert "Done." in captured.out
+
+    def test_cli_processes_multiple_directories(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test CLI with multiple directory arguments."""
+        # * Create test directories with Python files
+        dir1 = tmp_path / "dir1"
+        dir2 = tmp_path / "dir2"
+        dir1.mkdir()
+        dir2.mkdir()
+        
+        (dir1 / "test1.py").write_text("def func1(): pass")
+        (dir2 / "test2.py").write_text("def func2(): pass")
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(dir1), str(dir2)])
+        
+        cli.main()
+        
+        captured = capsys.readouterr()
+        assert "Done." in captured.out
+        
+        # * Both files should be processed
+        assert "Classes/Functions:" in (dir1 / "test1.py").read_text()
+        assert "Classes/Functions:" in (dir2 / "test2.py").read_text()
+
+    def test_cli_verbose_mode(self, sample_python_file: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test CLI verbose mode functionality."""
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", "--verbose", str(sample_python_file.parent)])
+        
+        cli.main()
+        
+        captured = capsys.readouterr()
+        assert "Done." in captured.out
+        # * Verbose mode should show processing details
+        assert "Python:" in captured.out or "Processed" in captured.out
+
+    def test_cli_verbose_short_flag(self, sample_python_file: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test CLI verbose mode with short flag."""
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", "-v", str(sample_python_file.parent)])
+        
+        cli.main()
+        
+        captured = capsys.readouterr()
+        assert "Done." in captured.out
+
+
+class TestCLIArgumentParsing:
+    """Tests for CLI argument parsing."""
+
+    def test_help_message(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test that help message is displayed."""
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", "--help"])
+        
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main()
+        
+        # * --help should exit with code 0
+        assert exc_info.value.code == 0
+        
+        captured = capsys.readouterr()
+        assert "Generate file-level docstrings" in captured.out
+        assert "DIRECTORY" in captured.out
+        assert "--verbose" in captured.out
+
+    def test_version_display(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test that version information is displayed."""
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", "--version"])
+        
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main()
+        
+        # * --version should exit with code 0
+        assert exc_info.value.code == 0
+        
+        captured = capsys.readouterr()
+        assert "0.1.0" in captured.out  # * From __init__.py
+
+    def test_no_arguments_provided(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test behavior when no arguments are provided."""
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings"])
+        
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main()
+        
+        # * Should exit with error code
+        assert exc_info.value.code != 0
+        
+        captured = capsys.readouterr()
+        assert "required" in captured.err.lower() or "arguments" in captured.err.lower()
+
+    def test_invalid_argument(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test behavior with invalid arguments."""
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", "--invalid-flag", "/some/path"])
+        
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main()
+        
+        # * Should exit with error code
+        assert exc_info.value.code != 0
+        
+        captured = capsys.readouterr()
+        assert "unrecognized" in captured.err.lower() or "invalid" in captured.err.lower()
+
+
+class TestCLIErrorHandling:
+    """Tests for CLI error handling."""
+
+    def test_nonexistent_directory(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test handling of non-existent directory."""
+        nonexistent_path = "/this/path/does/not/exist"
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", nonexistent_path])
+        
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main()
+        
+        # * Should exit with error code 1
+        assert exc_info.value.code == 1
+        
+        captured = capsys.readouterr()
+        assert "Error:" in captured.err
+        assert "Directory not found" in captured.err
+        assert nonexistent_path in captured.err
+
+    def test_file_instead_of_directory(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test handling when a file is passed instead of directory."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("def test(): pass")
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(test_file)])
+        
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main()
+        
+        assert exc_info.value.code == 1
+        
+        captured = capsys.readouterr()
+        assert "Error:" in captured.err
+        assert "Directory not found" in captured.err
+
+    def test_mixed_valid_invalid_directories(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test handling of mix of valid and invalid directories."""
+        valid_dir = tmp_path / "valid"
+        valid_dir.mkdir()
+        (valid_dir / "test.py").write_text("def test(): pass")
+        
+        invalid_dir = "/invalid/path"
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(valid_dir), invalid_dir])
+        
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main()
+        
+        # * Should exit on first invalid directory
+        assert exc_info.value.code == 1
+        
+        captured = capsys.readouterr()
+        assert "Error:" in captured.err
+
+    def test_permission_denied_directory(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test handling of directories with permission issues."""
+        restricted_dir = tmp_path / "restricted"
+        restricted_dir.mkdir()
+        
+        # * Make directory unreadable (this might not work on all systems)
+        try:
+            restricted_dir.chmod(0o000)
+            
+            monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(restricted_dir)])
+            
+            # * The behavior might vary by system, but it shouldn't crash
+            try:
+                cli.main()
+            except SystemExit:
+                pass  # * Expected on some systems
+            
+        finally:
+            # * Restore permissions for cleanup
+            restricted_dir.chmod(0o755)
+
+    def test_empty_directory(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test processing an empty directory."""
+        empty_dir = tmp_path / "empty"
+        empty_dir.mkdir()
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(empty_dir)])
+        
+        cli.main()
+        
+        captured = capsys.readouterr()
+        assert "Done." in captured.out
+
+
+class TestCLIIntegration:
+    """Integration tests for CLI functionality."""
+
+    @patch('agent_docstrings.core.discover_and_process_files')
+    def test_cli_calls_core_function(self, mock_discover: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test that CLI properly calls the core processing function."""
+        test_dir = tmp_path / "test"
+        test_dir.mkdir()
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(test_dir)])
+        
+        cli.main()
+        
+        # * Verify that the core function was called with correct arguments
+        mock_discover.assert_called_once_with([str(test_dir)], False)
+
+    @patch('agent_docstrings.core.discover_and_process_files')
+    def test_cli_calls_core_function_verbose(self, mock_discover: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test that CLI properly passes verbose flag to core function."""
+        test_dir = tmp_path / "test"
+        test_dir.mkdir()
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", "--verbose", str(test_dir)])
+        
+        cli.main()
+        
+        # * Verify that verbose=True was passed
+        mock_discover.assert_called_once_with([str(test_dir)], True)
+
+    @patch('agent_docstrings.core.discover_and_process_files')
+    def test_cli_calls_core_with_multiple_dirs(self, mock_discover: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test that CLI properly passes multiple directories."""
+        dir1 = tmp_path / "dir1"
+        dir2 = tmp_path / "dir2"
+        dir1.mkdir()
+        dir2.mkdir()
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(dir1), str(dir2)])
+        
+        cli.main()
+        
+        # * Verify that both directories were passed
+        mock_discover.assert_called_once_with([str(dir1), str(dir2)], False)
+
+    def test_full_integration_workflow(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test complete workflow from CLI to file processing."""
+        # * Create a complex directory structure
+        src_dir = tmp_path / "src"
+        tests_dir = tmp_path / "tests"
+        src_dir.mkdir()
+        tests_dir.mkdir()
+        
+        # * Create various file types
+        (src_dir / "main.py").write_text("""
+class Application:
+    def __init__(self):
+        self.name = "test"
+    
+    def run(self):
+        print("Running...")
+
+def main():
+    app = Application()
+    app.run()
+""")
+        
+        (src_dir / "utils.py").write_text("""
+def helper_function(x, y):
+    return x + y
+
+class Helper:
+    def process(self, data):
+        return data.upper()
+""")
+        
+        (tests_dir / "test_main.py").write_text("""
+import unittest
+
+class TestApplication(unittest.TestCase):
+    def test_run(self):
+        pass
+""")
+        
+        # * Run CLI
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", "-v", str(src_dir), str(tests_dir)])
+        
+        cli.main()
+        
+        captured = capsys.readouterr()
+        assert "Done." in captured.out
+        
+        # * Verify all Python files were processed
+        main_content = (src_dir / "main.py").read_text()
+        utils_content = (src_dir / "utils.py").read_text()
+        test_content = (tests_dir / "test_main.py").read_text()
+        
+        assert "Classes/Functions:" in main_content
+        assert "Application" in main_content
+        assert "main()" in main_content
+        
+        assert "Classes/Functions:" in utils_content
+        assert "Helper" in utils_content
+        assert "helper_function" in utils_content
+        
+        assert "Classes/Functions:" in test_content
+        assert "TestApplication" in test_content
+
+
+class TestCLIEdgeCases:
+    """Tests for CLI edge cases and unusual scenarios."""
+
+    def test_very_long_directory_paths(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test handling of very long directory paths."""
+        # * Create a deeply nested directory structure
+        deep_path = tmp_path
+        for i in range(5):  # * Create reasonably deep nesting
+            deep_path = deep_path / f"level_{i}"
+            deep_path.mkdir()
+        
+        (deep_path / "test.py").write_text("def test(): pass")
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(deep_path)])
+        
+        # * Should handle long paths without issues
+        cli.main()
+
+    def test_unicode_directory_names(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test handling of directory names with Unicode characters."""
+        unicode_dir = tmp_path / "测试目录"  # * Chinese characters
+        unicode_dir.mkdir()
+        
+        (unicode_dir / "test.py").write_text("def test(): pass")
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(unicode_dir)])
+        
+        # * Should handle Unicode paths gracefully
+        try:
+            cli.main()
+        except (UnicodeError, OSError):
+            # * Some systems might not support Unicode paths
+            pytest.skip("Unicode paths not supported on this system")
+
+    def test_special_characters_in_paths(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test handling of paths with special characters."""
+        special_dir = tmp_path / "dir with spaces & symbols!"
+        special_dir.mkdir()
+        
+        (special_dir / "test.py").write_text("def test(): pass")
+        
+        monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(special_dir)])
+        
+        # * Should handle special characters in paths
+        cli.main()
+
+    def test_relative_vs_absolute_paths(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test handling of both relative and absolute paths."""
+        test_dir = tmp_path / "test"
+        test_dir.mkdir()
+        (test_dir / "test.py").write_text("def test(): pass")
+        
+        # * Change to parent directory to test relative paths
+        original_cwd = Path.cwd()
+        try:
+            import os
+            os.chdir(tmp_path)
+            
+            # * Test with relative path
+            monkeypatch.setattr(sys, "argv", ["agent-docstrings", "test"])
+            cli.main()
+            
+            # * Test with absolute path
+            monkeypatch.setattr(sys, "argv", ["agent-docstrings", str(test_dir.absolute())])
+            cli.main()
+            
+        finally:
+            os.chdir(original_cwd)
+
+    def test_cli_with_current_directory(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test CLI with current directory as argument."""
+        (tmp_path / "test.py").write_text("def test(): pass")
+        
+        original_cwd = Path.cwd()
+        try:
+            import os
+            os.chdir(tmp_path)
+            
+            # * Test with "." as argument
+            monkeypatch.setattr(sys, "argv", ["agent-docstrings", "."])
+            cli.main()
+            
+        finally:
+            os.chdir(original_cwd) 
