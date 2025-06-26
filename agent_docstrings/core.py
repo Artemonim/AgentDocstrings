@@ -32,6 +32,7 @@ import os
 import fnmatch
 from pathlib import Path
 from typing import List, Callable, Dict, Tuple, Set
+import re
 
 from .languages.common import (
     COMMENT_STYLES,
@@ -208,26 +209,13 @@ LANG_PARSERS: Dict[str, Callable[[List[str]], Tuple[List[ClassInfo], List[Signat
 }
 
 
-def _format_header(
+def _get_header_content_lines(
     classes: List[ClassInfo],
     functions: List[SignatureInfo],
     language: str,
     header_line_count: int,
-) -> str:
-    """Return a formatted header block for *language*.
-
-    Args:
-        classes (List[ClassInfo]): Parsed class hierarchy.
-        functions (List[SignatureInfo]): Top-level functions.
-        language (str): Canonical language identifier.
-        header_line_count (int): Number of lines occupied by the header
-            itself (including delimiters). Used to offset original line
-            numbers so the recorded positions match the file *after*
-            insertion.
-
-    Returns:
-        str: Fully-formed comment block ready to be written to the file.
-    """
+) -> List[str]:
+    """Return a list of lines for the header content."""
     style = COMMENT_STYLES[language]
     
     header_lines: List[str] = [
@@ -240,7 +228,6 @@ def _format_header(
 
     def format_class(ci: ClassInfo, indent_level: int):
         indent = style.prefix + "  " * indent_level
-        # Add the header line count to the original line number
         corrected_line = ci.line + header_line_count
         header_lines.append(f"{indent}- {ci.name} (line {corrected_line}):")
         for method in ci.methods:
@@ -259,9 +246,21 @@ def _format_header(
             header_lines.append(f"{style.prefix}    - {func.signature} (line {corrected_func_line})")
 
     header_lines.append(f"{style.prefix}{DOCSTRING_END_MARKER}")
+    return header_lines
 
+
+def _format_header(
+    classes: List[ClassInfo],
+    functions: List[SignatureInfo],
+    language: str,
+    header_line_count: int,
+) -> str:
+    """Return a formatted header block for *language*."""
+    style = COMMENT_STYLES[language]
+    header_content_lines = _get_header_content_lines(classes, functions, language, header_line_count)
+    
     # Wrap in comment block
-    full_header_text = [style.start] + header_lines + [style.end]
+    full_header_text = [style.start] + header_content_lines + [style.end]
     return "\n".join(full_header_text)
 
 
@@ -279,34 +278,104 @@ def process_file(path: Path, verbose: bool = False) -> None:
 
     language = EXT_TO_LANG[ext]
     parser = LANG_PARSERS[language]
+    style = COMMENT_STYLES[language]
 
     try:
         original_content = path.read_text(encoding="utf-8", errors="ignore")
-        content_no_header = remove_agent_docstring(original_content, language)
-        lines = content_no_header.splitlines()
+        
+        # We no longer strip the header first. We will parse the code and then decide how to inject the new header.
+        lines = original_content.splitlines()
 
-        classes, functions = parser(lines)
+        # Extract shebang and encoding comment from the top of the file
+        file_prefix_lines = []
+        body_start_index = 0
+
+        if len(lines) > body_start_index and lines[body_start_index].startswith("#!"):
+            file_prefix_lines.append(lines[body_start_index])
+            body_start_index += 1
+        
+        if len(lines) > body_start_index and re.match(r"^[ \t\f]*#.*?coding[:=]\s*([-\w.]+)", lines[body_start_index]):
+            file_prefix_lines.append(lines[body_start_index])
+            body_start_index += 1
+        
+        # To parse functions/classes, we need the code without any file-level docstring.
+        # Let's find the code body.
+        temp_code_body = "\n".join(lines[body_start_index:])
+        docstring_end_pos = -1
+
+        # Simple check for module docstring start
+        if temp_code_body.lstrip().startswith(style.start):
+            end_marker_pos = temp_code_body.find(style.end, len(style.start))
+            if end_marker_pos != -1:
+                docstring_end_pos = end_marker_pos + len(style.end)
+
+        code_to_parse = temp_code_body[docstring_end_pos:] if docstring_end_pos != -1 else temp_code_body
+        
+        classes, functions = parser(code_to_parse.splitlines())
 
         if not classes and not functions:
             if verbose:
                 print(f"Skipping {path} (no classes or functions found)")
             return
 
-        # A preliminary header is needed to calculate its own line count for adjustments.
-        preliminary_header = _format_header(classes, functions, language, 0)
-        header_line_count = preliminary_header.count("\n") + 1
+        preliminary_header_lines = _get_header_content_lines(classes, functions, language, 0)
+        header_line_count = len(preliminary_header_lines)
 
-        # Now, format the final header with corrected line numbers.
-        final_header = _format_header(classes, functions, language, header_line_count)
+        final_header_lines = _get_header_content_lines(classes, functions, language, header_line_count)
+        final_header_content = "\n".join(final_header_lines)
 
-        # Re-add shebang if it was stripped with the header
-        shebang = ""
-        if original_content.startswith("#!"):
-            shebang = original_content.splitlines()[0] + "\n"
-            content_no_header = content_no_header.lstrip().split("\n", 1)[-1]
+        # Now, let's inject the new header into the original content
+        file_prefix = "\n".join(file_prefix_lines)
+        code_body = "\n".join(lines[body_start_index:])
         
-        new_content = f"{shebang}{final_header}\n{content_no_header}"
+        new_content = ""
 
+        # Pattern to find an existing agent docstring content (inside a docstring)
+        agent_content_pattern = re.compile(
+            rf"{re.escape(style.prefix)}{re.escape(DOCSTRING_START_MARKER)}.*?{re.escape(style.prefix)}{re.escape(DOCSTRING_END_MARKER)}",
+            re.DOTALL
+        )
+
+        agent_match = agent_content_pattern.search(code_body)
+
+        if agent_match:
+            # Case 1: An agent docstring already exists. Replace its content.
+            new_code_body = agent_content_pattern.sub(final_header_content, code_body, count=1)
+        else:
+            # Case 2: No agent docstring. Look for a manual one or create a new block.
+            docstring_start_pos = code_body.lstrip().find(style.start)
+            
+            if docstring_start_pos == 0:
+                # Case 2a: A manual docstring exists. Inject our content into it.
+                leading_whitespace = code_body[:code_body.find(style.start)]
+                content_after_delimiter_pos = code_body.find(style.start) + len(style.start)
+                
+                # Check if there is content on the same line as the opening delimiter
+                rest_of_line = code_body[content_after_delimiter_pos:].split('\n')[0]
+                
+                insertion_text = f"\n{final_header_content}\n"
+                
+                # If the docstring is like """Docstring.""" on one line, add a newline.
+                if rest_of_line.strip() and style.end in rest_of_line:
+                    insertion_text = f"\n{final_header_content}"
+
+                new_code_body = (
+                    leading_whitespace +
+                    style.start +
+                    insertion_text +
+                    code_body[content_after_delimiter_pos:].lstrip()
+                )
+            else:
+                # Case 2b: No docstring found. Create a new one.
+                full_header_block = f"{style.start}\n{final_header_content}\n{style.end}"
+                new_code_body = f"{full_header_block}\n\n{code_body.lstrip()}"
+
+        new_content_parts = []
+        if file_prefix:
+            new_content_parts.append(file_prefix)
+        new_content_parts.append(new_code_body)
+        new_content = "\n".join(new_content_parts)
+        
         if new_content.strip() != original_content.strip():
             path.write_text(new_content, encoding="utf-8")
             if verbose:

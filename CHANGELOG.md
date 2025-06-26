@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Planned Features
+
+-   Additional language support: Swift, Perl, Curl, Fortran, Visual Basic, R, PHP, Lua, Bash, SQL
+-   Configuration file format validation
+-   Switching to the Abstract Syntax Tree (AST)
+
+## [1.0.1] - 2024-05-24
+
+### Fixed
+
+-   **Parser improvements**:
+    -   Correctly identifies functions with `async def`.
+    -   Better handling of functions with decorators.
+-   **Docstring placement**:
+    -   Ensures auto-generated docstrings are placed after shebang (`#!`) and encoding (`# -*- coding: utf-8 -*-`) lines.
+-   **Unified docstring handling**:
+    -   Intelligently integrates auto-generated docstrings into existing manual docstrings.
+    -   Replaces content of existing auto-generated docstrings while preserving manual additions.
+
 ## [1.0.0] - 2025-06-27
 
 ### Added
@@ -45,18 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Development setup instructions
 -   API documentation for programmatic usage
 
-## [Unreleased]
-
-### Planned Features
-
--   Additional language support: Swift, Perl, Curl, Fortran, Visual Basic, R, PHP, Lua, Bash, SQL
--   Configuration file format validation
--   Switching to the Abstract Syntax Tree (AST)
-
----
-
 ## Version History
 
+-   **1.0.1** - Parser and docstring handling improvements
 -   **1.0.0** - Initial stable release with multi-language support and filtering system
 -   **0.4.0** - (internal)
 -   **0.3.0** - (internal)

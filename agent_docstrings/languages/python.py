@@ -5,7 +5,7 @@ from typing import List, Tuple, Union, Optional
 from .common import ClassInfo, SignatureInfo
 
 PY_CLASS_RE = re.compile(r"^class\s+(\w+)")
-PY_FUNC_RE = re.compile(r"^(\s*)def\s+(_?_?[\w]+_?_?)\(([^)]*)\)(?:\s*->\s*([^:]+))?:")
+PY_FUNC_RE = re.compile(r"^(\s*)(async\s+)?def\s+(_?_?[\w]+_?_?)\(([^)]*)\)(?:\s*->\s*([^:]+))?:")
 
 
 def parse_python_file(
@@ -35,7 +35,7 @@ def parse_python_file(
 
         func_match = PY_FUNC_RE.match(line)
         if func_match:
-            indent, name, params, rtype = func_match.groups()
+            indent, async_keyword, name, params, rtype = func_match.groups()
             # Basic handling for dunder methods, excluding __init__ from method lists for cleaner summaries
             if name == "__init__":
                 continue
