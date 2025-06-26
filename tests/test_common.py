@@ -9,7 +9,9 @@ from agent_docstrings.languages.common import (
     ClassInfo,
     SignatureInfo,
     CommentStyle,
-    strip_existing_header,
+    remove_agent_docstring,
+    DOCSTRING_START_MARKER,
+    DOCSTRING_END_MARKER,
 )
 
 
@@ -55,7 +57,8 @@ class TestCommentStyles:
     def test_all_supported_languages_have_styles(self) -> None:
         """Ensure all supported languages have comment style definitions."""
         expected_languages = {
-            "python", "kotlin", "javascript", "typescript", "csharp", "cpp"
+            "python", "kotlin", "javascript", "typescript", "csharp", "cpp", 
+            "c", "java", "go", "powershell", "delphi"
         }
         assert set(COMMENT_STYLES.keys()) == expected_languages
 
@@ -82,7 +85,7 @@ class TestCommentStyles:
 
 
 class TestHeaderStripping:
-    """Tests for strip_existing_header function."""
+    """Tests for remove_agent_docstring function."""
 
     def test_strip_python_header(self) -> None:
         """Test stripping Python docstring headers."""
