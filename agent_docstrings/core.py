@@ -377,7 +377,11 @@ def process_file(path: Path, verbose: bool = False) -> None:
         new_content = "\n".join(new_content_parts)
         
         if new_content.strip() != original_content.strip():
-            path.write_text(new_content, encoding="utf-8")
+            # * Using open with newline='\n' to force LF line endings, which is
+            # * standard for git projects and avoids CRLF<->LF conversion issues.
+            with path.open("w", encoding="utf-8", newline="\n") as f:
+                f.write(new_content)
+            
             if verbose:
                 print(f"Processed {language.capitalize()}: {path}")
         elif verbose:
