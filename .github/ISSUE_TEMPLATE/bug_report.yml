@@ -1,0 +1,152 @@
+name: Bug Report
+description: Report a bug or issue with Agent Docstrings
+title: "[BUG] "
+labels: ["🐞 bug", "🤓 Check me"]
+assignees: []
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to report a bug! Please fill out this form as completely as possible. You can fill it in English or Russian.
+
+    - type: checkboxes
+      id: checklist
+      attributes:
+          label: Pre-submission Checklist
+          description: Please confirm you have completed these steps
+          options:
+              - label: I have read the [README.md](../README.md)
+                required: true
+              - label: I have searched for existing issues that might be related to this bug
+                required: true
+              - label: I am using the latest version of Agent Docstrings
+                required: true
+
+    - type: dropdown
+      id: language
+      attributes:
+          label: Affected Language
+          description: Which programming language is affected?
+          options:
+              - Python
+              - Java
+              - Kotlin
+              - Go
+              - PowerShell
+              - Delphi
+              - C
+              - C++
+              - C#
+              - JavaScript
+              - TypeScript
+              - Multiple languages
+              - CLI/Core functionality
+              - Other/Unknown
+      validations:
+          required: true
+
+    - type: textarea
+      id: description
+      attributes:
+          label: Bug Description
+          description: A clear and concise description of what the bug is
+          placeholder: Describe what happened and what you expected to happen
+      validations:
+          required: true
+
+    - type: dropdown
+      id: severity
+      attributes:
+          label: Bug Severity
+          description: How severe is this bug?
+          options:
+              - 😵 Critical - Tool crashes or produces corrupted output
+              - 😭 High - Incorrect docstring generation or file corruption
+              - 😣 Medium - Missing functions/classes in docstrings
+              - 🙄 Low - Minor formatting issues or cosmetic problems
+      validations:
+          required: true
+
+    - type: textarea
+      id: reproduction
+      attributes:
+          label: Steps to Reproduce
+          description: Step-by-step instructions to reproduce the bug
+          placeholder: |
+              1. Run 'agent-docstrings src/'
+              2. Check output in file '...'
+              3. See error
+      validations:
+          required: true
+
+    - type: textarea
+      id: expected
+      attributes:
+          label: Expected Behavior
+          description: What should have happened instead?
+          placeholder: Describe the expected behavior
+      validations:
+          required: true
+
+    - type: textarea
+      id: actual
+      attributes:
+          label: Actual Behavior
+          description: What actually happened?
+          placeholder: Describe what actually happened, including any error messages
+      validations:
+          required: true
+
+    - type: textarea
+      id: environment
+      attributes:
+          label: Environment Information
+          description: Please provide details about your environment
+          placeholder: |
+              - OS: Windows 11, Linux (which distro?), macOS
+              - Python Version: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13
+              - Agent Docstrings Version: (run 'pip show agent-docstrings')
+              - Installation method: pip, from source
+      validations:
+          required: true
+
+    - type: textarea
+      id: logs
+      attributes:
+          label: Error Logs/Output
+          description: If applicable, paste any error messages or relevant log output
+          render: shell
+          placeholder: |
+              Paste error messages, stack traces, or relevant output here:
+              ```
+              your error text here
+              ```
+
+    - type: textarea
+      id: files
+      attributes:
+          label: Sample Files
+          description: If the bug is related to specific code files, please describe them
+          placeholder: |
+              - File type: .py, .java, .go, etc.
+              - File size/complexity: 
+              - Any special characteristics of the code
+              - Can you share a minimal example that reproduces the issue?
+
+    - type: textarea
+      id: additional
+      attributes:
+          label: Additional Context
+          description: Add any other context about the problem here
+          placeholder: Screenshots, workarounds you've tried, related issues, etc.
+
+    - type: checkboxes
+      id: contribution
+      attributes:
+          label: Contribution
+          description: Are you willing to help fix this bug?
+          options:
+              - label: I would like to fix this bug myself
+              - label: I can help with testing
+              - label: I can provide domain expertise/guidance

@@ -119,21 +119,23 @@ agent_docstrings/*.py
 
 The tool automatically reads and respects `.gitignore` files in your project directory and its parents. Files and directories ignored by git will also be ignored by the docstring generator.
 
-## Limitations and Edge Cases
+## Limitations and Nuances
 
-It is important to understand the limitations of this tool to use it effectively. The core of the generator relies on regular expressions for code parsing, which can be fragile.
+It is important to understand the nuances of this tool to use it effectively. The quality and method of code parsing vary significantly by language.
 
--   **Table of Contents, Not Documentation**: The generator does not create detailed, explanatory docstrings for functions or classes. Instead, it generates a file-level comment block that acts as a "Table of Contents," listing the functions and classes found in the file.
+-   **Table of Contents, Not Full Documentation**: The generator does not create detailed, explanatory docstrings. Instead, it generates a file-level comment block that acts as a "Table of Contents" listing the functions and classes found in the file. This provides a quick overview of the file's structure.
 
--   **Fragile Regex-Based Parsing**: The reliance on regular expressions means the parser may fail or produce incorrect results with:
+-   **Language-Dependent Parsing Quality**: The reliability of the parser is highly dependent on the target language.
 
-    -   **Multiline Definitions**: Function or class signatures that span multiple lines.
-    -   **Complex Syntax**: Advanced language features like C++ templates, decorators on separate lines, or complex default parameter values.
-    -   **Unconventional Formatting**: Code that does not follow common formatting standards.
+    -   **Robust AST-Based Parsing (Python, Go)**: For Python and Go, the tool uses native Abstract Syntax Tree (AST) parsers. This approach is highly accurate and robustly handles complex syntax, multiline definitions, and unconventional formatting.
 
--   **Inconsistent Language Support**: The quality of parsing varies by language. Languages handled by the generic C-style parser (C, C++, C#, JavaScript, TypeScript) are particularly prone to errors due to a simplified brace-counting mechanism for scope detection, which can be easily confused by comments or strings containing braces.
+    -   **Regex-Based Parsing (Other Languages)**: For other languages (C++, C#, Java, JavaScript, TypeScript, Kotlin, PowerShell, Delphi), the generator relies on regular expressions and simplified scope analysis (brace counting). This method is inherently more fragile and may fail or produce incorrect results with:
+        -   **Multiline Definitions**: Function or class signatures that span multiple lines.
+        -   **Complex Syntax**: Advanced language features like C++ templates, decorators on separate lines, or complex default parameter values.
+        -   **Unconventional Formatting**: Code that does not follow common formatting standards.
+        -   **Scope Confusion**: The brace-counting mechanism can be easily confused by comments or strings containing `{` or `}` characters, leading to incorrect structure detection.
 
--   **File Modification**: The tool modifies files in place. It correctly removes its own previously generated headers but might struggle with files that have very complex header comments, potentially leading to incorrect placement of the new header.
+-   **In-Place File Modification**: The tool modifies files directly. It is designed to correctly remove its own previously generated headers, but it might struggle with files that have very complex, pre-existing header comments, potentially leading to incorrect placement of the new header.
 
 ## Supported Languages
 
@@ -145,11 +147,11 @@ It is important to understand the limitations of this tool to use it effectively
 | Go         | `.go`                               | Functions, methods             |
 | PowerShell | `.ps1`, `.psm1`                     | Functions                      |
 | Delphi     | `.pas`                              | Classes, procedures, functions |
-| C          | `.c`, `.h`                          | Functions, classes             |
+| C          | `.c`, `.h`                          | Functions                      |
 | C++        | `.cpp`, `.hpp`, `.cc`, `.cxx`, `.h` | Functions, classes             |
 | C#         | `.cs`                               | Classes, methods               |
 | JavaScript | `.js`, `.jsx`                       | Functions, classes             |
-| TypeScript | `.ts`, `.tsx`                       | Functions, classes, interfaces |
+| TypeScript | `.ts`, `.tsx`                       | Functions, classes             |
 
 ## Examples
 
@@ -207,7 +209,7 @@ repos:
             name: Generate docstrings
             entry: agent-docstrings
             language: system
-            files: \.(py|java|kt|go|ps1|pas)$
+            files: \.(py|java|kt|go|ps1|psm1|pas|js|jsx|ts|tsx|cs|cpp|cxx|cc|hpp|h|c)$
             pass_filenames: false
             args: [src/]
 ```

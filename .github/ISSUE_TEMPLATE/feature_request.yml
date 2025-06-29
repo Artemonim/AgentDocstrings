@@ -1,0 +1,178 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for Agent Docstrings
+title: "[FEATURE] "
+labels: ["🪲 enhancement", "🤓 Check me"]
+assignees: []
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for suggesting a new feature! Please provide as much detail as possible to help us understand your request. You can fill it in English or Russian.
+
+    - type: checkboxes
+      id: checklist
+      attributes:
+          label: Pre-submission Checklist
+          description: Please confirm you have completed these steps
+          options:
+              - label: I have read the [README.md](../README.md)
+                required: true
+              - label: I am using the latest version of Agent Docstrings
+                required: true
+              - label: I have searched for existing issues to see if this feature has been requested before
+                required: true
+              - label: This feature request is not a bug report (use Bug Report template for bugs)
+                required: true
+
+    - type: dropdown
+      id: category
+      attributes:
+          label: Feature Category
+          description: Which category does this feature belong to?
+          options:
+              - New language support
+              - Enhancement to existing language parser
+              - CLI/User Interface improvement
+              - Performance optimization
+              - Configuration/Filtering improvement
+              - Documentation improvement
+              - Developer/API enhancement
+              - Integration (IDE, CI/CD, etc.)
+              - Other
+      validations:
+          required: true
+
+    - type: checkboxes
+      id: language
+      attributes:
+          label: Related Language/Component
+          description: Which language or component would this feature affect?
+          options:
+              - label: Python parser
+              - label: Java parser
+              - label: Kotlin parser
+              - label: Go parser
+              - label: PowerShell parser
+              - label: Delphi parser
+              - label: C/C++ parser
+              - label: C# parser
+              - label: JavaScript/TypeScript parser
+              - label: CLI interface
+              - label: Configuration system
+              - label: File discovery
+              - label: New language support
+              - label: Core functionality
+
+    - type: textarea
+      id: summary
+      attributes:
+          label: Feature Summary
+          description: A brief, clear summary of the feature you'd like to see
+          placeholder: "Add support for..., Improve parsing of..., Create new option for..."
+      validations:
+          required: true
+
+    - type: textarea
+      id: problem
+      attributes:
+          label: Problem Statement
+          description: What problem does this feature solve? What use case does it address?
+          placeholder: |
+              Describe the problem or limitation you're experiencing:
+              - What are you trying to accomplish with docstring generation?
+              - What current functionality is missing or insufficient?
+              - How does this impact your development workflow?
+      validations:
+          required: true
+
+    - type: textarea
+      id: solution
+      attributes:
+          label: Proposed Solution
+          description: Describe your ideal solution in detail
+          placeholder: |
+              Describe how you envision this feature working:
+              - What would the command-line interface look like?
+              - How would it integrate with existing parsers?
+              - What would the generated docstrings contain?
+              - What would the typical usage workflow be?
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternative Solutions
+          description: Have you considered any alternative approaches or workarounds?
+          placeholder: |
+              - Other ways this could be implemented
+              - Existing tools or workarounds you've tried
+              - Why those alternatives are not sufficient
+
+    - type: dropdown
+      id: priority
+      attributes:
+          label: Priority Level
+          description: How important is this feature to you?
+          options:
+              - 🫠 Critical - Blocking my workflow completely
+              - 😎 High - Would significantly improve my workflow
+              - 🤔 Medium - Would be nice to have
+              - 👀 Low - Minor convenience improvement
+      validations:
+          required: true
+
+    - type: checkboxes
+      id: complexity
+      attributes:
+          label: Implementation Complexity
+          description: How complex do you think this would be?
+          options:
+              - label: 🤔 Simple - Minor change or addition
+              - label: 😑 Moderate - Requires new parsing logic
+              - label: 🛠️ Complex - Major feature requiring significant development
+              - label: 😎 I don't know
+      validations:
+          required: true
+
+    - type: textarea
+      id: examples
+      attributes:
+          label: Usage Examples
+          description: Provide specific examples of how this feature would be used
+          placeholder: |
+              1. Command: agent-docstrings --new-option src/
+              2. Expected output format
+              3. Integration example
+              4. ...
+
+    - type: textarea
+      id: technical
+      attributes:
+          label: Technical Details (Optional)
+          description: If you have technical suggestions, libraries, or implementation details
+          placeholder: |
+              - Suggested libraries or dependencies
+              - Parser implementation approach
+              - Technical considerations
+              - Performance requirements
+
+    - type: checkboxes
+      id: contribution
+      attributes:
+          label: Contribution
+          description: Are you willing to help implement this feature?
+          options:
+              - label: I would like to implement this feature myself
+              - label: I can help with testing
+              - label: I can provide sample code files for testing
+
+    - type: textarea
+      id: additional
+      attributes:
+          label: Additional Context
+          description: Any other information that would be helpful
+          placeholder: |
+              - Screenshots or mockups
+              - Links to similar features in other tools
+              - Research or background information
+              - Timeline considerations

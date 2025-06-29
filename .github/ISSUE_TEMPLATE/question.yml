@@ -1,0 +1,84 @@
+name: Question
+description: Ask a question about Agent Docstrings usage, setup, or functionality
+title: "[QUESTION] "
+labels: ["question", "needs-response"]
+assignees: []
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for your question! Please provide as much detail as possible so we can help you effectively. You can fill it in English or Russian.
+
+    - type: checkboxes
+      id: checklist
+      attributes:
+          label: Pre-submission Checklist
+          description: Please confirm you have completed these steps
+          options:
+              - label: I have searched existing issues and discussions for similar questions
+                required: true
+              - label: I have read the [README.md](../README.md) and relevant documentation
+                required: true
+              - label: This is not a bug report (use Bug Report template for bugs)
+                required: true
+              - label: This is not a feature request (use Feature Request template for new features)
+                required: true
+
+    - type: dropdown
+      id: category
+      attributes:
+          label: Question Category
+          description: What type of question is this?
+          options:
+              - Installation/Setup help
+              - Usage/How-to question
+              - Configuration question (.agent-docstrings-ignore, .agent-docstrings-include)
+              - Language-specific parsing question
+              - Performance/Optimization question
+              - Compatibility question (Python versions, file formats)
+              - Integration question (CI/CD, pre-commit hooks)
+              - Development/Contributing question
+              - Documentation clarification
+              - General question
+              - Other
+      validations:
+          required: true
+
+    - type: dropdown
+      id: language
+      attributes:
+          label: Related Language/Component (if applicable)
+          description: Which language or component is your question about?
+          options:
+              - Python parser
+              - Java parser
+              - Kotlin parser
+              - Go parser
+              - PowerShell parser
+              - Delphi parser
+              - C/C++ parser
+              - C# parser
+              - JavaScript/TypeScript parser
+              - CLI interface
+              - Configuration system (.gitignore, blacklist/whitelist)
+              - File discovery
+              - General project question
+              - Multiple languages
+              - Not sure/Not applicable
+
+    - type: textarea
+      id: question
+      attributes:
+          label: Your Question
+          description: What would you like to know? Be as specific as possible.
+      validations:
+          required: true
+
+    - type: textarea
+      id: context
+      attributes:
+          label: Context and Expected Outcome
+          description: What are you trying to achieve? What result are you hoping for?
+          placeholder: |
+              Describe your goal and what you've tried so far.

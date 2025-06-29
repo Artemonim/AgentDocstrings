@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+    - name: 📖 Documentation
+      url: https://github.com/Artemonim/AgentDocstrings/blob/master/README.md
+      about: Read the project documentation and setup instructions
+    - name: 💬 Discussions
+      url: https://github.com/Artemonim/AgentDocstrings/discussions
+      about: Ask questions and discuss ideas with the community

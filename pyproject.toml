@@ -47,11 +47,11 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourname/agent-docstrings"
-"Source" = "https://github.com/yourname/agent-docstrings"
-"Tracker" = "https://github.com/yourname/agent-docstrings/issues"
-"Documentation" = "https://github.com/yourname/agent-docstrings#readme"
-"Changelog" = "https://github.com/yourname/agent-docstrings/blob/main/CHANGELOG.md"
+"Homepage" = "https://github.com/Artemonim/agent-docstrings"
+"Source" = "https://github.com/Artemonim/agent-docstrings"
+"Tracker" = "https://github.com/Artemonim/agent-docstrings/issues"
+"Documentation" = "https://github.com/Artemonim/agent-docstrings#readme"
+"Changelog" = "https://github.com/Artemonim/agent-docstrings/blob/main/CHANGELOG.md"
 
 [project.scripts]
 agent-docstrings = "agent_docstrings.cli:main"
