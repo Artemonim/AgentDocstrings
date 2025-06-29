@@ -124,7 +124,7 @@ exclude_lines = [
 ]
 
 [tool.bumpversion]
-current_version = "1.1.0"
+current_version = "1.2.0"
 commit = false
 tag = false
 

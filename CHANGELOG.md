@@ -13,7 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Configuration file format validation
 -   Switching to the Abstract Syntax Tree (AST)
 
-## [1.1.0]
+## [1.2.0] - 2025-06-29
+
+### Added
+
+-   **Generator Versioning**: The tool's version is now embedded in the generated docstring for easier tracking and debugging.
+-   **Header Preservation**: Implemented intelligent detection to preserve file headers (e.g., shebangs, encoding declarations, Go package definitions, leading comments/imports) across all supported languages.
+-   **Expanded Language Support**: Added initial processing support and type mappings for Java, PowerShell, Delphi, and C.
+-   **Enhanced Testing**: Introduced new test suites for determinism, header preservation, and line number accuracy to ensure core feature reliability.
+
+### Changed
+
+-   **Python Parser Overhaul**: Replaced the fragile regex-based Python parser with a robust implementation using Python's native Abstract Syntax Tree (`ast`) module. This provides highly accurate parsing of complex function signatures, decorators, type hints, and nested class structures.
+-   **Line Numbering Accuracy**: Completely reworked the line number calculation to account for preserved file headers and the size of the injected docstring, ensuring the table of contents is always accurate.
+
+### Fixed
+
+-   **`__future__` Import Placement**: Corrected a critical bug where `from __future__ import` statements were incorrectly moved below the generated docstring, breaking Python file syntax.
+-   **Docstring Management**: Hardened the logic for identifying and removing agent-generated docstrings by using more specific start/end markers, preventing accidental modification of user-written docstrings.
+-   **Generic Parser**: Improved the generic parser for C-style languages, resolving a known bug that affected brace counting and failed C# file parsing.
+
+## [1.1.0] - 2025-06-29
 
 ### AST-parsing
 
@@ -22,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Added a `build_goparser.ps1` script to automate the compilation of the Go parser into an executable.
     -   Integrated the new parser into the main Python application, replacing the old logic for Go file analysis.
 
-## [1.0.1] - 2024-05-24
+## [1.0.1] - 2025-06-27
 
 ### Fixed
 
