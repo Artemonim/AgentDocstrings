@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Configuration file format validation
 -   Switching to the Abstract Syntax Tree (AST)
 
+## [1.1.0]
+
+### AST-parsing
+
+-   **Go Language**:
+    -   Implemented a new, high-precision AST parser using Go's native `go/parser` and `go/ast` libraries. This significantly improves the accuracy of identifying functions, methods, and types in `.go` files compared to previous methods.
+    -   Added a `build_goparser.ps1` script to automate the compilation of the Go parser into an executable.
+    -   Integrated the new parser into the main Python application, replacing the old logic for Go file analysis.
+
 ## [1.0.1] - 2024-05-24
 
 ### Fixed
