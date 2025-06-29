@@ -9,6 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+agent_docstrings/bin/
 develop-eggs/
 dist/
 downloads/
