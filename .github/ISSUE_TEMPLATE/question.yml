@@ -1,7 +1,7 @@
 name: Question
 description: Ask a question about Agent Docstrings usage, setup, or functionality
 title: "[QUESTION] "
-labels: ["question", "needs-response"]
+labels: ["❔ question", "🤓 Check me"]
 assignees: []
 
 body:
