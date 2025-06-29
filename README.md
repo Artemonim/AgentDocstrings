@@ -1,3 +1,18 @@
+<!-- ain badges -->
+[![PyPI version](https://badge.fury.io/py/agent-docstrings.svg)](https://badge.fury.io/py/agent-docstrings)
+[![Python versions](https://img.shields.io/pypi/pyversions/agent-docstrings.svg)](https://pypi.org/project/agent-docstrings/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+<!-- GitHub stats -->
+[![GitHub stars](https://img.shields.io/github/stars/Artemonim/AgentDocstrings.svg?style=social&label=Star)](https://github.com/Artemonim/AgentDocstrings)
+[![GitHub forks](https://img.shields.io/github/forks/Artemonim/AgentDocstrings.svg?style=social&label=Fork)](https://github.com/Artemonim/AgentDocstrings)
+[![Build Status](https://github.com/Artemonim/AgentDocstrings/workflows/Publish%20Python%20Package%20to%20PyPI/badge.svg)](https://github.com/Artemonim/AgentDocstrings/actions)
+
+<!-- Code Quality -->
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Typed with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![codecov](https://codecov.io/gh/Artemonim/AgentDocstrings/branch/master/graph/badge.svg)](https://codecov.io/gh/Artemonim/AgentDocstrings)
+
 # Agent Docstrings Generator
 
 A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions. Useful for maintaining a high-level overview of your files, especially in projects with code generated or modified by AI assistants.
