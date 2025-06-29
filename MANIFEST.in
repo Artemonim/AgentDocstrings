@@ -1,2 +1,3 @@
 include README.md
-include LICENSE 
+include LICENSE
+recursive-include agent_docstrings/bin * 

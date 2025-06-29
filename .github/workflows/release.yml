@@ -1,0 +1,47 @@
+name: Publish Python Package to PyPI
+
+on:
+    release:
+        types: [published]
+
+jobs:
+    build-and-publish:
+        name: Build and publish Python distributions to PyPI
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write # Important for trusted publishing
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "1.22" # Or your project's Go version
+
+            - name: Install PowerShell
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y powershell
+              shell: bash
+
+            - name: Build Go parsers
+              run: pwsh -File ./build_goparser.ps1
+              shell: bash
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install build dependencies
+              run: python -m pip install build
+
+            - name: Build a binary wheel and a source tarball
+              run: python -m build
+
+            - name: Publish package to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+              # No password needed, it uses the OIDC identity token

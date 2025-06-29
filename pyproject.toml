@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-docstrings"
-version = "1.0.0"
-description = "Automatically generate docstrings for Python, Java, Kotlin, Go, PowerShell, Delphi and other languages using AI-powered analysis"
+version = "1.2.0"
+description = "A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions. Useful for maintaining a high-level overview of your files, especially in projects with code generated or modified by AI assistants."
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
 authors = [
-    { name = "Your Name", email = "your@email.com" }
+    { name = "Artemonim", email = "Artemonim@yandex.ru" }
 ]
 maintainers = [
-    { name = "Your Name", email = "your@email.com" }
+    { name = "Artemonim", email = "Artemonim@yandex.ru" }
 ]
 keywords = ["docstrings", "documentation", "ai", "python", "java", "kotlin", "go", "powershell", "delphi", "code-analysis"]
 classifiers = [
@@ -62,7 +62,7 @@ include = ["agent_docstrings*"]
 exclude = ["tests*"]
 
 [tool.setuptools.package-data]
-agent_docstrings = ["py.typed"]
+agent_docstrings = ["py.typed", "bin/*"]
 
 [tool.black]
 line-length = 88
