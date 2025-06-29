@@ -252,6 +252,27 @@ black agent_docstrings/
 mypy agent_docstrings/
 ```
 
+### Version Bumping
+
+This project uses [bump-my-version](https://github.com/callowayproject/bump-my-version) for version management. To create a new version, use the following commands after installing the development dependencies (`pip install -e .[dev]`):
+
+-   **Patch release (e.g., 1.0.1 -> 1.0.2):**
+    ```bash
+    bump-my-version patch
+    ```
+-   **Minor release (e.g., 1.0.2 -> 1.1.0):**
+    ```bash
+    bump-my-version minor
+    ```
+-   **Major release (e.g., 1.1.0 -> 2.0.0):**
+    ```bash
+    bump-my-version major
+    ```
+
+The tool is configured in `pyproject.toml` to automatically update the version string in `agent_docstrings/__init__.py`, `pyproject.toml`, and `CHANGELOG.md`.
+
+**Note**: Per project configuration, this tool only modifies the files. You will need to commit and tag the changes manually after bumping the version.
+
 ## Contributing
 
 1. Fork the repository

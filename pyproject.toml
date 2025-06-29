@@ -43,6 +43,7 @@ dev = [
     "black>=22.0",
     "flake8>=4.0",
     "mypy>=0.950",
+    "bump-my-version",
 ]
 
 [project.urls]
@@ -120,4 +121,24 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
-] 
+]
+
+[tool.bumpversion]
+current_version = "1.0.1"
+commit = false
+tag = false
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "agent_docstrings/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "CHANGELOG.md"
+search = "## [{current_version}]"
+replace = "## [{new_version}]\n\n### Header\n\n-   **subtitle**:\n\n    -   text\n\n## [{current_version}]" 
