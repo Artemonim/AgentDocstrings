@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-docstrings"
-version = "1.2.1"
+version = "1.3.0"
 description = "A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions. Useful for maintaining a high-level overview of your files, especially in projects with code generated or modified by AI assistants."
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
@@ -14,7 +14,33 @@ authors = [
 maintainers = [
     { name = "Artemonim", email = "Artemonim@yandex.ru" }
 ]
-keywords = ["docstrings", "documentation", "ai", "python", "java", "kotlin", "go", "powershell", "delphi", "code-analysis"]
+keywords = [
+    "docstrings",
+    "documentation",
+    "ai",
+    "developer-tools",
+    "automation",
+    "code-generator",
+    "maintainability",
+    "code-quality",
+    "static-analysis",
+    "pre-commit",
+    "linter",
+    "summarize-code",
+    "code-navigation",
+    "refactoring",
+    "python",
+    "java",
+    "kotlin",
+    "go",
+    "powershell",
+    "delphi",
+    "typescript",
+    "javascript",
+    "csharp",
+    "c++",
+    "c"
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
@@ -47,11 +73,11 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/Artemonim/agent-docstrings"
-"Source" = "https://github.com/Artemonim/agent-docstrings"
-"Tracker" = "https://github.com/Artemonim/agent-docstrings/issues"
-"Documentation" = "https://github.com/Artemonim/agent-docstrings#readme"
-"Changelog" = "https://github.com/Artemonim/agent-docstrings/blob/main/CHANGELOG.md"
+"Homepage" = "https://github.com/Artemonim/AgentDocstrings"
+"Source" = "https://github.com/Artemonim/AgentDocstrings"
+"Tracker" = "https://github.com/Artemonim/AgentDocstrings/issues"
+"Documentation" = "https://github.com/Artemonim/AgentDocstrings#readme"
+"Changelog" = "https://github.com/Artemonim/AgentDocstrings/blob/master/CHANGELOG.md"
 
 [project.scripts]
 agent-docstrings = "agent_docstrings.cli:main"
@@ -124,7 +150,7 @@ exclude_lines = [
 ]
 
 [tool.bumpversion]
-current_version = "1.2.1"
+current_version = "1.3.0"
 commit = false
 tag = false
 
