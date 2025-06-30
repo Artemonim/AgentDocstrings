@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+-   **Error Handling for Inaccessible Directories**: Fixed a crash (`PermissionError`) that occurred when scanning directories with restricted read permissions. The application will now skip such directories and print a warning, preventing unintended modifications to files that might have been excluded by an unreadable `.gitignore` or other configuration files.
 -   **Deleting empty lines**: Detected and fixed the removal of empty lines at the end of processed files
 -   **Language-Specific Indentation**: Fixed the indentation in the generated 'Table of Contents' to respect common style conventions for each language (e.g., 4 spaces for Python, 2 for JavaScript).
 

@@ -69,6 +69,8 @@ def parse_gitignore(gitignore_path: Path) -> Set[str]:
                 line = line.strip()
                 if line and not line.startswith("#"):
                     patterns.add(line)
+    except PermissionError:
+        raise
     except Exception:
         pass
     return patterns
@@ -118,6 +120,8 @@ def load_blacklist_whitelist(directory: Path) -> Tuple[Set[str], Set[str]]:
                     for line in f
                     if line.strip() and not line.startswith("#")
                 )
+        except PermissionError:
+            raise
         except Exception:
             pass
     if whitelist_file.exists():
@@ -128,6 +132,8 @@ def load_blacklist_whitelist(directory: Path) -> Tuple[Set[str], Set[str]]:
                     for line in f
                     if line.strip() and not line.startswith("#")
                 )
+        except PermissionError:
+            raise
         except Exception:
             pass
     return blacklist, whitelist
@@ -483,41 +489,45 @@ def discover_and_process_files(paths: List[str], verbose: bool = False, beta: bo
     files_to_process = []
     
     for p_str in paths:
-        path = Path(p_str).resolve()
-        if not path.exists():
-            print(f"Warning: '{p_str}' is not a valid path. Skipping.")
-            continue
-            
-        if path.is_dir():
-            # Collect all gitignore patterns from the directory tree
-            ignore_patterns = set()
-            current_dir = path
-            while current_dir != current_dir.parent:
-                gitignore_path = current_dir / '.gitignore'
-                if gitignore_path.exists():
-                    ignore_patterns.update(parse_gitignore(gitignore_path))
-                current_dir = current_dir.parent
-            
-            # Load blacklist and whitelist from the root directory
-            blacklist_patterns, whitelist_patterns = load_blacklist_whitelist(path)
+        try:
+            path = Path(p_str).resolve()
+            if not path.exists():
+                print(f"Warning: '{p_str}' is not a valid path. Skipping.")
+                continue
+                
+            if path.is_dir():
+                # Collect all gitignore patterns from the directory tree
+                ignore_patterns = set()
+                current_dir = path
+                while current_dir != current_dir.parent:
+                    gitignore_path = current_dir / '.gitignore'
+                    if gitignore_path.exists():
+                        ignore_patterns.update(parse_gitignore(gitignore_path))
+                    current_dir = current_dir.parent
+                
+                # Load blacklist and whitelist from the root directory
+                blacklist_patterns, whitelist_patterns = load_blacklist_whitelist(path)
 
-            for root, dirs, files in os.walk(path):
-                root_path = Path(root)
-                
-                # Filter directories to avoid walking into ignored ones
-                dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS and not is_path_ignored(root_path / d, ignore_patterns, path)]
-                
-                for file in files:
-                    file_path = root_path / file
+                for root, dirs, files in os.walk(path):
+                    root_path = Path(root)
                     
-                    # Check if file should be processed
-                    if not should_process_file(file_path, path, ignore_patterns, 
-                                             blacklist_patterns, whitelist_patterns):
-                        continue
+                    # Filter directories to avoid walking into ignored ones
+                    dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS and not is_path_ignored(root_path / d, ignore_patterns, path)]
                     
-                    files_to_process.append(file_path)
-        elif path.is_file():
-            files_to_process.append(path)
+                    for file in files:
+                        file_path = root_path / file
+                        
+                        # Check if file should be processed
+                        if not should_process_file(file_path, path, ignore_patterns, 
+                                                 blacklist_patterns, whitelist_patterns):
+                            continue
+                        
+                        files_to_process.append(file_path)
+            elif path.is_file():
+                files_to_process.append(path)
+        except PermissionError:
+            print(f"Warning: Could not read configuration (e.g., .gitignore) in '{p_str}' due to a permission error. Skipping path to ensure no unintended files are modified.")
+            continue
 
     # Process all collected files
     for file_path in sorted(list(set(files_to_process))):
