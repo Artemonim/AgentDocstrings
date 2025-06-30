@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-docstrings"
-version = "1.2.0"
+version = "1.2.1"
 description = "A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions. Useful for maintaining a high-level overview of your files, especially in projects with code generated or modified by AI assistants."
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
@@ -124,7 +124,7 @@ exclude_lines = [
 ]
 
 [tool.bumpversion]
-current_version = "1.2.0"
+current_version = "1.2.1"
 commit = false
 tag = false
 

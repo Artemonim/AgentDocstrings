@@ -5,11 +5,11 @@
     
     Classes/Functions:
     - TestLineNumberCorrection (line 23):
-      - test_python_line_numbers_without_existing_docstring(tmp_path: Path) -> None (line 24)
-      - test_python_line_numbers_with_existing_docstring(tmp_path: Path) -> None (line 73)
-      - test_go_line_numbers_correction(tmp_path: Path) -> None (line 119)
-      - test_line_numbers_with_shebang(tmp_path: Path) -> None (line 175)
-      - test_line_numbers_after_multiple_updates(tmp_path: Path) -> None (line 231)
+      - test_python_line_numbers_without_existing_docstring(source_processor) -> None (line 24)
+      - test_python_line_numbers_with_existing_docstring(source_processor) -> None (line 65)
+      - test_go_line_numbers_correction(source_processor) -> None (line 101)
+      - test_line_numbers_with_shebang(source_processor) -> None (line 149)
+      - test_line_numbers_after_multiple_updates(tmp_path: Path, source_processor) -> None (line 175)
     --- END AUTO-GENERATED DOCSTRING ---
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ from agent_docstrings.core import process_file
 
 
 class TestLineNumberCorrection:
-    def test_python_line_numbers_without_existing_docstring(self, tmp_path: Path) -> None:
+    def test_python_line_numbers_without_existing_docstring(self, source_processor) -> None:
         """Test that line numbers are correct when adding docstring to file without one."""
         source_code = dedent("""
             def first_function():
@@ -38,15 +38,7 @@ class TestLineNumberCorrection:
                 return "hello"
         """).strip()
         
-        python_file = tmp_path / "test_lines.py"
-        python_file.write_text(source_code)
-        
-        # * Process the file
-        process_file(python_file, verbose=False)
-        
-        # * Read the processed content
-        result_content = python_file.read_text()
-        lines = result_content.splitlines()
+        _, lines, _ = source_processor("test_lines.py", source_code)
         
         # * Find the docstring content
         docstring_lines = [line for line in lines if "line" in line and ("function" in line or "method" in line)]
@@ -70,7 +62,7 @@ class TestLineNumberCorrection:
                 actual_line = lines[line_num - 1]
                 assert "def method_one(self):" in actual_line
 
-    def test_python_line_numbers_with_existing_docstring(self, tmp_path: Path) -> None:
+    def test_python_line_numbers_with_existing_docstring(self, source_processor) -> None:
         """Test line numbers when updating existing docstring."""
         source_code = dedent('''
             """
@@ -86,15 +78,7 @@ class TestLineNumberCorrection:
                     return 1
         ''').strip()
         
-        python_file = tmp_path / "test_existing.py"
-        python_file.write_text(source_code)
-        
-        # * Process the file
-        process_file(python_file, verbose=False)
-        
-        # * Read the processed content
-        result_content = python_file.read_text()
-        lines = result_content.splitlines()
+        result_content, lines, _ = source_processor("test_existing.py", source_code)
         
         # * Find function definitions and verify line numbers in docstring
         first_func_line = None
@@ -110,13 +94,11 @@ class TestLineNumberCorrection:
                 method_line = i
         
         # * Verify docstring has correct line numbers
-        docstring_content = result_content
-        
-        assert f"first_function() (line {first_func_line})" in docstring_content
-        assert f"MyClass (line {class_line}):" in docstring_content
-        assert f"method_one() (line {method_line})" in docstring_content
+        assert f"first_function() (line {first_func_line})" in result_content
+        assert f"MyClass (line {class_line}):" in result_content
+        assert f"method_one() (line {method_line})" in result_content
 
-    def test_go_line_numbers_correction(self, tmp_path: Path) -> None:
+    def test_go_line_numbers_correction(self, source_processor) -> None:
         """Test line numbers for Go files (skipped if Go is unsupported)."""
         from agent_docstrings.core import EXT_TO_LANG  # type: ignore
 
@@ -141,15 +123,7 @@ class TestLineNumberCorrection:
             }
         """).strip()
         
-        go_file = tmp_path / "test_lines.go"
-        go_file.write_text(source_code)
-        
-        # * Process the file
-        process_file(go_file, verbose=False)
-        
-        # * Read the processed content
-        result_content = go_file.read_text()
-        lines = result_content.splitlines()
+        result_content, lines, _ = source_processor("test_lines.go", source_code)
         
         # * Find actual definitions
         interface_line = None
@@ -172,7 +146,7 @@ class TestLineNumberCorrection:
         if method_line:
             assert f"MethodOnStruct" in result_content and f"line {method_line}" in result_content
 
-    def test_line_numbers_with_shebang(self, tmp_path: Path) -> None:
+    def test_line_numbers_with_shebang(self, source_processor) -> None:
         """Test line numbers when file has shebang and encoding."""
         source_code = dedent("""
             #!/usr/bin/env python3
@@ -186,15 +160,7 @@ class TestLineNumberCorrection:
                     main()
         """).strip()
         
-        python_file = tmp_path / "test_shebang.py"
-        python_file.write_text(source_code)
-        
-        # * Process the file
-        process_file(python_file, verbose=False)
-        
-        # * Read the processed content
-        result_content = python_file.read_text()
-        lines = result_content.splitlines()
+        result_content, lines, _ = source_processor("test_shebang.py", source_code)
         
         # * Verify shebang and encoding are preserved
         assert lines[0] == "#!/usr/bin/env python3"
@@ -206,7 +172,7 @@ class TestLineNumberCorrection:
         assert 'Application' in result_content
         assert 'run()' in result_content
 
-    def test_line_numbers_after_multiple_updates(self, tmp_path: Path) -> None:
+    def test_line_numbers_after_multiple_updates(self, tmp_path: Path, source_processor) -> None:
         """Test that line numbers remain correct after multiple updates."""
         source_code = dedent("""
             def original_function():
@@ -217,12 +183,8 @@ class TestLineNumberCorrection:
                     pass
         """).strip()
         
-        python_file = tmp_path / "test_multiple.py"
-        python_file.write_text(source_code)
-        
         # * First processing
-        process_file(python_file, verbose=False)
-        first_result = python_file.read_text()
+        first_result, _, python_file = source_processor("test_multiple.py", source_code)
         
         # * Second processing (should update existing docstring)
         process_file(python_file, verbose=False)

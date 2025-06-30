@@ -1,0 +1,1099 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 884f393..5075945 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ -   Configuration file format validation
+ -   Switching to the Abstract Syntax Tree (AST)
+ 
++## [1.2.1]
++
++### Header
++
++-   **subtitle**:
++    -   text
++
+ ## [1.2.0] - 2025-06-29
+ 
+ ### Added
+diff --git a/README.md b/README.md
+index 0483ae8..70e17aa 100644
+--- a/README.md
++++ b/README.md
+@@ -17,6 +17,22 @@
+ 
+ A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions. Useful for maintaining a high-level overview of your files, especially in projects with code generated or modified by AI assistants.
+ 
++## Supported Languages
++
++| Language   | File Extensions                     | Features                       |
++| ---------- | ----------------------------------- | ------------------------------ |
++| Python     | `.py`                               | Classes, functions, methods    |
++| Java       | `.java`                             | Classes, methods               |
++| Kotlin     | `.kt`                               | Classes, functions             |
++| Go         | `.go`                               | Functions, methods             |
++| PowerShell | `.ps1`, `.psm1`                     | Functions                      |
++| Delphi     | `.pas`                              | Classes, procedures, functions |
++| C          | `.c`, `.h`                          | Functions                      |
++| C++        | `.cpp`, `.hpp`, `.cc`, `.cxx`, `.h` | Functions, classes             |
++| C#         | `.cs`                               | Classes, methods               |
++| JavaScript | `.js`, `.jsx`                       | Functions, classes             |
++| TypeScript | `.ts`, `.tsx`                       | Functions, classes             |
++
+ ## Why?
+ 
+ When working in Cursor and similar IDEs, Agents often start reading files from the beginning. And regarding Cursor's behavior during the script's creation, in normal mode, the model reads 250 lines of code per call, and in MAX mode, 750 lines. However, I have projects with files over 1000 lines of code, which are not very appropriate to divide into smaller files. And anyway, Agent still have to call reading tools for each individual file.
+@@ -38,11 +54,6 @@ In addition to the advantage of quick navigation, the initial docstring also ser
+ 
+ This tool is compatible with **Python 3.8, 3.9, 3.10, 3.11, 3.12, and 3.13**.
+ 
+-### Key compatibility features:
+-
+--   Uses `typing.Union` instead of `|` syntax for Python 3.8/3.9 compatibility
+--   Uses `typing.Tuple` instead of built-in `tuple` for type hints
+--   Compatible with `from __future__ import annotations`
+ -   No dependency on external libraries
+ 
+ ## Installation
+@@ -56,7 +67,7 @@ pip install agent-docstrings
+ ### From source
+ 
+ ```bash
+-git clone https://github.com/yourname/agent-docstrings.git
++git clone https://github.com/Artemonim/agent-docstrings.git
+ cd agent-docstrings
+ pip install -e .
+ ```
+@@ -152,22 +163,6 @@ It is important to understand the nuances of this tool to use it effectively. Th
+ 
+ -   **In-Place File Modification**: The tool modifies files directly. It is designed to correctly remove its own previously generated headers, but it might struggle with files that have very complex, pre-existing header comments, potentially leading to incorrect placement of the new header.
+ 
+-## Supported Languages
+-
+-| Language   | File Extensions                     | Features                       |
+-| ---------- | ----------------------------------- | ------------------------------ |
+-| Python     | `.py`                               | Classes, functions, methods    |
+-| Java       | `.java`                             | Classes, methods               |
+-| Kotlin     | `.kt`                               | Classes, functions             |
+-| Go         | `.go`                               | Functions, methods             |
+-| PowerShell | `.ps1`, `.psm1`                     | Functions                      |
+-| Delphi     | `.pas`                              | Classes, procedures, functions |
+-| C          | `.c`, `.h`                          | Functions                      |
+-| C++        | `.cpp`, `.hpp`, `.cc`, `.cxx`, `.h` | Functions, classes             |
+-| C#         | `.cs`                               | Classes, methods               |
+-| JavaScript | `.js`, `.jsx`                       | Functions, classes             |
+-| TypeScript | `.ts`, `.tsx`                       | Functions, classes             |
+-
+ ## Examples
+ 
+ ### Python Example
+diff --git a/agent_docstrings/__init__.py b/agent_docstrings/__init__.py
+index ae682ed..471edb9 100644
+--- a/agent_docstrings/__init__.py
++++ b/agent_docstrings/__init__.py
+@@ -7,4 +7,4 @@ imported solely for metadata (e.g. by `importlib.metadata`).
+ Attributes:
+     __version__ (str): Current version of the *agent-docstrings* package.
+ """
+-__version__ = "1.2.0" 
+\ No newline at end of file
++__version__ = "1.2.1" 
+\ No newline at end of file
+diff --git a/agent_docstrings/core.py b/agent_docstrings/core.py
+index e65c404..5186b2d 100644
+--- a/agent_docstrings/core.py
++++ b/agent_docstrings/core.py
+@@ -13,7 +13,7 @@
+         - _format_header(classes: List[ClassInfo], functions: List[SignatureInfo], language: str, line_offset: int) -> str (line 242)
+         - get_preserved_header_end_line(lines: List[str], language: str) -> int (line 262)
+         - process_file(path: Path, verbose: bool = False) -> None (line 344)
+-        - discover_and_process_files(directories: List[str], verbose: bool = False) -> None (line 414)
++        - discover_and_process_files(directories: List[str], verbose: bool = False) -> None (line 468)
+     --- END AUTO-GENERATED DOCSTRING ---
+ """
+ from __future__ import annotations
+@@ -390,15 +390,69 @@ def process_file(path: Path, verbose: bool = False) -> None:
+         # * Now create the final header with correct line numbers
+         final_header = _format_header(classes, functions, language, line_offset)
+         
+-        new_content_parts = []
+-        if file_prefix:
+-            new_content_parts.append(file_prefix)
+-        
+-        new_content_parts.append(final_header)
+-        new_content_parts.append(cleaned_body.strip())
+-        
+-        # Use single newlines to test composition theory
+-        new_content = "\n".join(filter(None, new_content_parts))
++        # Attempt to merge auto-generated header into existing manual docstring for Python
++        merged_body = None
++        if language == "python":
++            # Split cleaned body into lines
++            body_lines = cleaned_body.splitlines()
++            # Find first non-empty line
++            idx = 0
++            while idx < len(body_lines) and body_lines[idx].strip() == "":
++                idx += 1
++            # Check for manual docstring start
++            if idx < len(body_lines) and body_lines[idx].strip().startswith(('"""', "'''")):
++                delim = body_lines[idx].strip()
++                # Ensure it's not an existing auto-generated docstring
++                marker_present = False
++                for i in range(idx, min(idx + 5, len(body_lines))):
++                    if DOCSTRING_START_MARKER in body_lines[i]:
++                        marker_present = True
++                        break
++                if not marker_present:
++                    # Find end of manual docstring
++                    end_idx = None
++                    for j in range(idx + 1, len(body_lines)):
++                        if body_lines[j].strip() == delim:
++                            end_idx = j
++                            break
++                    if end_idx is not None:
++                        manual_inner = body_lines[idx + 1:end_idx]
++                        # Compute auto header content lines with correct offset for merge
++                        # temp_header_lines holds the auto header lines including delimiters
++                        # content_lines length is temp_header_lines minus start/end markers
++                        offset_override = len(temp_header_lines) - 2
++                        # Generate only the header content lines (without triple-quote delimiters)
++                        header_inner = _get_header_content_lines(
++                            classes, functions, language, offset_override
++                        )
++                        merged_lines = []
++                        # Preserve leading blank lines before manual docstring
++                        merged_lines.extend(body_lines[:idx])
++                        # Start merged docstring with manual delimiter
++                        merged_lines.append(delim)
++                        # Insert auto-generated header content
++                        merged_lines.extend(header_inner)
++                        # Insert original manual docstring content
++                        merged_lines.extend(manual_inner)
++                        # Close merged docstring with manual delimiter
++                        merged_lines.append(delim)
++                        # Append rest of body after original docstring
++                        merged_lines.extend(body_lines[end_idx + 1:])
++                        merged_body = "\n".join(merged_lines)
++        if merged_body is not None:
++            if file_prefix:
++                new_content = file_prefix + "\n" + merged_body.lstrip("\n")
++            else:
++                new_content = merged_body.lstrip("\n")
++        else:
++            # Default behavior: insert separate docstring
++            new_content_parts = []
++            if file_prefix:
++                new_content_parts.append(file_prefix)
++            new_content_parts.append(final_header)
++            new_content_parts.append(cleaned_body.strip())
++            # Use single newlines to test composition theory
++            new_content = "\n".join(filter(None, new_content_parts))
+ 
+         if new_content.strip() != original_content.strip():
+             path.write_text(new_content, encoding="utf-8", newline="\n")
+diff --git a/pyproject.toml b/pyproject.toml
+index c752e4f..ba31b7a 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "agent-docstrings"
+-version = "1.2.0"
++version = "1.2.1"
+ description = "A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions. Useful for maintaining a high-level overview of your files, especially in projects with code generated or modified by AI assistants."
+ readme = { file = "README.md", content-type = "text/markdown" }
+ license = { file = "LICENSE" }
+@@ -124,7 +124,7 @@ exclude_lines = [
+ ]
+ 
+ [tool.bumpversion]
+-current_version = "1.2.0"
++current_version = "1.2.1"
+ commit = false
+ tag = false
+ 
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 78e3bc5..e93afa2 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -5,19 +5,20 @@
+     
+     Classes/Functions:
+       - Functions:
+-        - fixtures_dir() -> Path (line 33)
+-        - sample_python_file(tmp_path: Path) -> Iterator[Path] (line 39)
+-        - sample_kotlin_file(tmp_path: Path) -> Iterator[Path] (line 61)
+-        - sample_javascript_file(tmp_path: Path) -> Iterator[Path] (line 87)
+-        - sample_typescript_file(tmp_path: Path) -> Iterator[Path] (line 120)
+-        - sample_csharp_file(tmp_path: Path) -> Iterator[Path] (line 155)
+-        - sample_cpp_file(tmp_path: Path) -> Iterator[Path] (line 198)
+-        - complex_python_file(tmp_path: Path) -> Iterator[Path] (line 249)
+-        - python_file_with_existing_header(tmp_path: Path) -> Iterator[Path] (line 357)
+-        - multilanguage_project(tmp_path: Path) -> Iterator[Path] (line 390)
+-        - empty_files_project(tmp_path: Path) -> Iterator[Path] (line 427)
+-        - sample_files_by_language(tmp_path: Path) -> Iterator[Dict[str, Path]] (line 447)
+-        - malformed_files_project(tmp_path: Path) -> Iterator[Path] (line 479)
++        - source_processor(tmp_path: Path) (line 36)
++        - fixtures_dir() -> Path (line 64)
++        - sample_python_file(tmp_path: Path) -> Iterator[Path] (line 70)
++        - sample_kotlin_file(tmp_path: Path) -> Iterator[Path] (line 92)
++        - sample_javascript_file(tmp_path: Path) -> Iterator[Path] (line 118)
++        - sample_typescript_file(tmp_path: Path) -> Iterator[Path] (line 151)
++        - sample_csharp_file(tmp_path: Path) -> Iterator[Path] (line 186)
++        - sample_cpp_file(tmp_path: Path) -> Iterator[Path] (line 229)
++        - complex_python_file(tmp_path: Path) -> Iterator[Path] (line 280)
++        - python_file_with_existing_header(tmp_path: Path) -> Iterator[Path] (line 388)
++        - multilanguage_project(tmp_path: Path) -> Iterator[Path] (line 421)
++        - empty_files_project(tmp_path: Path) -> Iterator[Path] (line 458)
++        - sample_files_by_language(tmp_path: Path) -> Iterator[Dict[str, Path]] (line 478)
++        - malformed_files_project(tmp_path: Path) -> Iterator[Path] (line 510)
+     --- END AUTO-GENERATED DOCSTRING ---
+ """
+ from __future__ import annotations
+@@ -28,6 +29,36 @@ from typing import Iterator, Dict
+ 
+ import pytest
+ 
++from agent_docstrings.core import process_file
++
++
++@pytest.fixture
++def source_processor(tmp_path: Path):
++    """A factory fixture that returns a helper function to process source code.
++
++    The helper function creates a temporary file with the given source code,
++    runs the main `process_file` logic on it, and returns the results.
++
++    Returns:
++        A callable that takes a filename and source code string, and returns
++        a tuple containing:
++        - The processed file content (str)
++        - The processed file content as a list of lines (list[str])
++        - The path to the processed file (Path)
++    """
++
++    def _process(
++        filename: str, source_code: str, verbose: bool = False
++    ) -> tuple[str, list[str], Path]:
++        """Creates a file with source_code, runs process_file, and returns content."""
++        source_path = tmp_path / filename
++        source_path.write_text(source_code, encoding="utf-8")
++        process_file(source_path, verbose=verbose)
++        content = source_path.read_text(encoding="utf-8")
++        return content, content.splitlines(), source_path
++
++    return _process
++
+ 
+ @pytest.fixture(scope="session")
+ def fixtures_dir() -> Path:
+diff --git a/tests/test_ast_integration.py b/tests/test_ast_integration.py
+index 2de9c2f..aeae975 100644
+--- a/tests/test_ast_integration.py
++++ b/tests/test_ast_integration.py
+@@ -5,13 +5,13 @@
+     
+     Classes/Functions:
+     - TestPythonASTIntegration (line 25):
+-      - test_python_ast_integration_complex(tmp_path: Path) -> None (line 26)
+-      - test_python_ast_integration_async_functions(tmp_path: Path) -> None (line 74)
+-      - test_python_ast_integration_nested_classes(tmp_path: Path) -> None (line 101)
+-    - TestGoASTIntegration (line 142):
+-      - test_go_ast_integration_interfaces(tmp_path: Path) -> None (line 143)
+-      - test_go_ast_integration_methods(tmp_path: Path) -> None (line 196)
+-      - test_go_ast_fallback_integration(tmp_path: Path) -> None (line 245)
++      - test_python_ast_integration_complex(source_processor) -> None (line 26)
++      - test_python_ast_integration_async_functions(source_processor) -> None (line 67)
++      - test_python_ast_integration_nested_classes(source_processor) -> None (line 90)
++    - TestGoASTIntegration (line 126):
++      - test_go_ast_integration_interfaces(source_processor) -> None (line 127)
++      - test_go_ast_integration_methods(source_processor) -> None (line 173)
++      - test_go_ast_fallback_integration(source_processor) -> None (line 218)
+     --- END AUTO-GENERATED DOCSTRING ---
+ """
+ from __future__ import annotations
+@@ -23,7 +23,7 @@ from agent_docstrings.core import process_file
+ 
+ 
+ class TestPythonASTIntegration:
+-    def test_python_ast_integration_complex(self, tmp_path: Path) -> None:
++    def test_python_ast_integration_complex(self, source_processor) -> None:
+         """Test full integration of Python AST parser with complex code."""
+         source_code = dedent("""
+             from typing import List, Dict, Optional
+@@ -51,14 +51,7 @@ class TestPythonASTIntegration:
+                 return True
+         """).strip()
+         
+-        python_file = tmp_path / "complex_test.py"
+-        python_file.write_text(source_code)
+-        
+-        # * Process the file
+-        process_file(python_file, verbose=False)
+-        
+-        # * Read the processed content
+-        result_content = python_file.read_text()
++        result_content, _, _ = source_processor("complex_test.py", source_code)
+         
+         # * Verify AST-generated docstring is present
+         assert "--- AUTO-GENERATED DOCSTRING ---" in result_content
+@@ -71,7 +64,7 @@ class TestPythonASTIntegration:
+         assert "from typing import List, Dict, Optional" in result_content
+         assert "class DataProcessor:" in result_content
+ 
+-    def test_python_ast_integration_async_functions(self, tmp_path: Path) -> None:
++    def test_python_ast_integration_async_functions(self, source_processor) -> None:
+         """Test integration with async functions."""
+         source_code = dedent("""
+             import asyncio
+@@ -87,18 +80,14 @@ class TestPythonASTIntegration:
+                 pass
+         """).strip()
+         
+-        python_file = tmp_path / "async_test.py"
+-        python_file.write_text(source_code)
+-        
+-        process_file(python_file, verbose=False)
+-        result_content = python_file.read_text()
++        result_content, _, _ = source_processor("async_test.py", source_code)
+         
+         # * Verify async functions are properly parsed
+         assert "process_async(data: bytes) -> str" in result_content
+         assert "global_async_function() -> None" in result_content
+         assert "AsyncProcessor" in result_content
+ 
+-    def test_python_ast_integration_nested_classes(self, tmp_path: Path) -> None:
++    def test_python_ast_integration_nested_classes(self, source_processor) -> None:
+         """Test integration with nested classes."""
+         source_code = dedent("""
+             class OuterClass:
+@@ -118,11 +107,7 @@ class TestPythonASTIntegration:
+                 return True
+         """).strip()
+         
+-        python_file = tmp_path / "nested_test.py"
+-        python_file.write_text(source_code)
+-        
+-        process_file(python_file, verbose=False)
+-        result_content = python_file.read_text()
++        result_content, lines, _ = source_processor("nested_test.py", source_code)
+         
+         # * Verify nested class structure is properly represented
+         assert "OuterClass" in result_content
+@@ -132,7 +117,6 @@ class TestPythonASTIntegration:
+         assert "standalone_function() -> bool" in result_content
+         
+         # * Verify proper indentation in docstring
+-        lines = result_content.split('\n')
+         docstring_lines = [line for line in lines if '- ' in line and ('Class' in line or 'method' in line or 'function' in line)]
+         
+         # * Should have proper hierarchical structure
+@@ -140,7 +124,7 @@ class TestPythonASTIntegration:
+ 
+ 
+ class TestGoASTIntegration:
+-    def test_go_ast_integration_interfaces(self, tmp_path: Path) -> None:
++    def test_go_ast_integration_interfaces(self, source_processor) -> None:
+         """Test full integration of Go AST parser with interfaces."""
+         source_code = dedent("""
+             package main
+@@ -169,14 +153,7 @@ class TestGoASTIntegration:
+             }
+         """).strip()
+         
+-        go_file = tmp_path / "interfaces_test.go"
+-        go_file.write_text(source_code)
+-        
+-        # * Process the file
+-        process_file(go_file, verbose=False)
+-        
+-        # * Read the processed content
+-        result_content = go_file.read_text()
++        result_content, _, _ = source_processor("interfaces_test.go", source_code)
+         
+         # * Verify Go AST-generated docstring is present
+         assert "--- AUTO-GENERATED DOCSTRING ---" in result_content
+@@ -193,7 +170,7 @@ class TestGoASTIntegration:
+         assert "package main" in result_content
+         assert "type Reader interface" in result_content
+ 
+-    def test_go_ast_integration_methods(self, tmp_path: Path) -> None:
++    def test_go_ast_integration_methods(self, source_processor) -> None:
+         """Test integration with Go methods on structs."""
+         source_code = dedent("""
+             package main
+@@ -227,11 +204,7 @@ class TestGoASTIntegration:
+             }
+         """).strip()
+         
+-        go_file = tmp_path / "methods_test.go"
+-        go_file.write_text(source_code)
+-        
+-        process_file(go_file, verbose=False)
+-        result_content = go_file.read_text()
++        result_content, _, _ = source_processor("methods_test.go", source_code)
+         
+         # * Verify methods are properly parsed
+         assert "func (dp *DataProcessor) ProcessData" in result_content
+@@ -242,7 +215,7 @@ class TestGoASTIntegration:
+         assert "context.Context" in result_content
+         assert "map[string]interface{}" in result_content
+ 
+-    def test_go_ast_fallback_integration(self, tmp_path: Path) -> None:
++    def test_go_ast_fallback_integration(self, source_processor) -> None:
+         """Test Go AST parser fallback to regex when Go toolchain unavailable."""
+         source_code = dedent("""
+             package main
+@@ -256,13 +229,9 @@ class TestGoASTIntegration:
+             }
+         """).strip()
+         
+-        go_file = tmp_path / "fallback_test.go"
+-        go_file.write_text(source_code)
++        result_content, _, _ = source_processor("fallback_test.go", source_code)
+         
+         # * Process the file (will use AST if available, regex if not)
+-        process_file(go_file, verbose=False)
+-        result_content = go_file.read_text()
+-        
+         # * Verify some form of processing occurred
+         assert "--- AUTO-GENERATED DOCSTRING ---" in result_content
+         assert "func" in result_content
+diff --git a/tests/test_core.py b/tests/test_core.py
+index 0e941ba..cf470ae 100644
+--- a/tests/test_core.py
++++ b/tests/test_core.py
+@@ -1,50 +1,51 @@
+ from __future__ import annotations
++
+ """
+     --- AUTO-GENERATED DOCSTRING ---
+     This docstring is automatically generated by Agent Docstrings v1.2.0
+     Do not modify this block directly.
+     
+     Classes/Functions:
+-    - TestConstants (line 70):
+-      - test_ext_to_lang_mapping() -> None (line 73)
+-      - test_lang_parsers_coverage() -> None (line 97)
+-      - test_parser_functions_callable() -> None (line 102)
+-    - TestHeaderFormatting (line 108):
+-      - test_format_python_header_basic() -> None (line 111)
+-      - test_format_header_with_line_offset() -> None (line 133)
+-      - test_format_kotlin_header() -> None (line 146)
+-      - test_format_csharp_header() -> None (line 159)
+-      - test_format_header_nested_classes() -> None (line 172)
+-      - test_format_header_empty_input() -> None (line 195)
+-      - test_format_header_only_functions() -> None (line 205)
+-      - test_format_header_only_classes() -> None (line 219)
+-    - TestProcessFile (line 230):
+-      - test_process_unsupported_extension(tmp_path: Path) -> None (line 233)
+-      - test_process_python_file_creates_header(tmp_path: Path) -> None (line 242)
+-      - test_process_file_with_existing_header(tmp_path: Path) -> None (line 263)
+-      - test_process_file_preserves_shebang(tmp_path: Path) -> None (line 282)
+-      - test_process_empty_file(tmp_path: Path) -> None (line 299)
+-      - test_process_file_no_classes_or_functions(tmp_path: Path) -> None (line 308)
+-      - test_process_file_encoding_issues(tmp_path: Path) -> None (line 322)
+-      - test_process_file_permission_error(tmp_path: Path) -> None (line 335)
+-      - test_process_file_verbose_output(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 353)
+-      - test_process_file_no_changes_needed(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 364)
+-      - test_process_file_read_error(mock_read, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 385)
+-      - test_process_file_write_error(mock_write, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 396)
+-      - test_process_file_parser_error(tmp_path: Path) -> None (line 406)
+-    - TestDiscoverAndProcessFiles (line 415):
+-      - test_discover_single_directory(tmp_path: Path) -> None (line 418)
+-      - test_discover_multiple_directories(tmp_path: Path) -> None (line 433)
+-      - test_discover_recursive_subdirectories(tmp_path: Path) -> None (line 448)
+-      - test_discover_skips_ignored_directories(tmp_path: Path) -> None (line 461)
+-      - test_discover_invalid_directory(capsys: pytest.CaptureFixture[str]) -> None (line 485)
+-      - test_discover_mixed_valid_invalid_directories(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 495)
+-      - test_discover_all_supported_extensions(tmp_path: Path) -> None (line 506)
+-      - test_discover_verbose_mode(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 538)
+-      - test_discover_no_files_to_process(tmp_path: Path) -> None (line 547)
+-    - TestErrorHandling (line 560):
+-      - test_format_header_invalid_language() -> None (line 563)
+-      - test_process_file_parser_error(tmp_path: Path) -> None (line 568)
++    - TestConstants (line 76):
++      - test_ext_to_lang_mapping() -> None (line 79)
++      - test_lang_parsers_coverage() -> None (line 103)
++      - test_parser_functions_callable() -> None (line 108)
++    - TestHeaderFormatting (line 114):
++      - test_format_python_header_basic() -> None (line 117)
++      - test_format_header_with_line_offset() -> None (line 142)
++      - test_format_kotlin_header() -> None (line 156)
++      - test_format_csharp_header() -> None (line 170)
++      - test_format_header_nested_classes() -> None (line 184)
++      - test_format_header_empty_input() -> None (line 208)
++      - test_format_header_only_functions() -> None (line 219)
++      - test_format_header_only_classes() -> None (line 234)
++    - TestProcessFile (line 246):
++      - test_process_unsupported_extension(tmp_path: Path) -> None (line 249)
++      - test_process_python_file_creates_header(source_processor) -> None (line 258)
++      - test_process_file_with_existing_header(source_processor) -> None (line 276)
++      - test_process_file_merges_manual_docstring(source_processor) -> None (line 292)
++      - test_process_file_preserves_shebang(source_processor) -> None (line 312)
++      - test_process_empty_file(tmp_path: Path) -> None (line 326)
++      - test_process_file_no_classes_or_functions(tmp_path: Path) -> None (line 335)
++      - test_process_file_encoding_issues(source_processor) -> None (line 349)
++      - test_process_file_permission_error(tmp_path: Path) -> None (line 359)
++      - test_process_file_verbose_output(source_processor, capsys: pytest.CaptureFixture[str]) -> None (line 377)
++      - test_process_file_no_changes_needed(source_processor, capsys: pytest.CaptureFixture[str]) -> None (line 385)
++      - test_process_file_read_error(mock_read, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 403)
++      - test_process_file_write_error(mock_write, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 414)
++      - test_process_file_parser_error(source_processor) -> None (line 425)
++    - TestDiscoverAndProcessFiles (line 431):
++      - test_discover_single_directory(tmp_path: Path) -> None (line 434)
++      - test_discover_multiple_directories(tmp_path: Path) -> None (line 449)
++      - test_discover_recursive_subdirectories(tmp_path: Path) -> None (line 464)
++      - test_discover_skips_ignored_directories(tmp_path: Path) -> None (line 477)
++      - test_discover_invalid_directory(capsys: pytest.CaptureFixture[str]) -> None (line 501)
++      - test_discover_mixed_valid_invalid_directories(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 511)
++      - test_discover_all_supported_extensions(tmp_path: Path) -> None (line 522)
++      - test_discover_verbose_mode(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None (line 554)
++      - test_discover_no_files_to_process(tmp_path: Path) -> None (line 563)
++    - TestErrorHandling (line 576):
++      - test_format_header_invalid_language() -> None (line 579)
+     --- END AUTO-GENERATED DOCSTRING ---
+ """
+ """Tests for agent_docstrings.core module."""
+@@ -65,7 +66,12 @@ from agent_docstrings.core import (
+     process_file,
+     discover_and_process_files,
+ )
+-from agent_docstrings.languages.common import ClassInfo, SignatureInfo
++from agent_docstrings.languages.common import (
++    ClassInfo,
++    SignatureInfo,
++    DOCSTRING_START_MARKER,
++    DOCSTRING_END_MARKER,
++)
+ 
+ 
+ class TestConstants:
+@@ -125,7 +131,10 @@ class TestHeaderFormatting:
+         
+         assert header.startswith('"""')
+         assert header.endswith('"""')
+-        assert f"This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
++        assert DOCSTRING_START_MARKER in header
++        assert DOCSTRING_END_MARKER in header
+         assert "Classes/Functions:" in header
+         assert "- TestClass (line 5):" in header
+         assert "- method(self) (line 6)" in header  
+@@ -140,7 +149,8 @@ class TestHeaderFormatting:
+         header = _format_header(classes, functions, "python", 5)
+         
+         # * Line numbers should be adjusted by the header length
+-        assert f"This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
+         assert "- Test (line 6):" in header  # * 1 + 5
+         assert "- func() (line 8)" in header  # * 3 + 5
+ 
+@@ -153,7 +163,8 @@ class TestHeaderFormatting:
+         
+         assert header.startswith('/**')
+         assert header.endswith(' */')
+-        assert f" * This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
+         assert " * Classes/Functions:" in header
+         assert " * - MainActivity (line 1):" in header
+ 
+@@ -166,7 +177,8 @@ class TestHeaderFormatting:
+         
+         assert header.startswith('/*')
+         assert header.endswith(' */')
+-        assert f" * This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
+         assert " * Classes/Functions:" in header
+         assert " * - Calculator (line 2):" in header
+ 
+@@ -187,7 +199,8 @@ class TestHeaderFormatting:
+         
+         header = _format_header([outer_class], [], "python", 0)
+         
+-        assert f"This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
+         assert "- OuterClass (line 5):" in header
+         assert "- outer_method() (line 6)" in header
+         assert "- InnerClass (line 8):" in header
+@@ -199,7 +212,8 @@ class TestHeaderFormatting:
+         
+         assert header.startswith('"""')
+         assert header.endswith('"""')
+-        assert f"This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
+         assert "Classes/Functions:" in header
+         # * Should still create a valid header structure even if empty
+ 
+@@ -212,7 +226,8 @@ class TestHeaderFormatting:
+         
+         header = _format_header([], functions, "python", 0)
+         
+-        assert f"This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
+         assert "  - Functions:" in header
+         assert "    - func1() (line 1)" in header
+         assert "    - func2(param: str) (line 5)" in header
+@@ -223,7 +238,8 @@ class TestHeaderFormatting:
+         
+         header = _format_header(classes, [], "python", 0)
+         
+-        assert f"This docstring is automatically generated by Agent Docstrings v{__version__}" in header
++        assert "This docstring is automatically generated by Agent Docstrings" in header
++        assert __version__ in header
+         assert "- OnlyClass (line 1):" in header
+         assert "  - Functions:" not in header
+ 
+@@ -240,9 +256,8 @@ class TestProcessFile:
+         process_file(unsupported_file)
+         assert unsupported_file.read_text() == "Some content"
+ 
+-    def test_process_python_file_creates_header(self, tmp_path: Path) -> None:
++    def test_process_python_file_creates_header(self, source_processor) -> None:
+         """Test that processing a Python file creates a proper header."""
+-        python_file = tmp_path / "test.py"
+         content = dedent("""
+             class TestClass:
+                 def test_method(self):
+@@ -251,49 +266,61 @@ class TestProcessFile:
+             def test_function():
+                 return 42
+         """).strip()
+-        python_file.write_text(content)
+-        
+-        process_file(python_file)
+         
+-        processed_content = python_file.read_text()
++        processed_content, _, _ = source_processor("test.py", content)
++
+         assert processed_content.startswith('"""')
+         assert "Classes/Functions:" in processed_content
+         assert "TestClass" in processed_content
+         assert "test_function" in processed_content
+ 
+-    def test_process_file_with_existing_header(self, tmp_path: Path) -> None:
++    def test_process_file_with_existing_header(self, source_processor) -> None:
+         """Test that existing headers are replaced, not duplicated."""
+-        python_file = tmp_path / "test.py"
+-        # * Use the exact format that the function expects to strip
+-        content = '''"""Classes/Functions:
++        # * Use a dummy header that will be replaced
++        content = '''"""--- AUTO-GENERATED DOCSTRING ---
+     - OldClass (line 5):
+-"""
++--- END AUTO-GENERATED DOCSTRING ---"""
+ class NewClass:
+     def new_method(self):
+         pass'''
+-        python_file.write_text(content)
+         
+-        process_file(python_file)
++        processed_content, _, _ = source_processor("test.py", content)
+         
+-        processed_content = python_file.read_text()
+-        assert processed_content.count("Classes/Functions:") == 1
++        assert processed_content.count("--- AUTO-GENERATED DOCSTRING ---") == 1
+         assert "NewClass" in processed_content
+         assert "OldClass" not in processed_content
+ 
+-    def test_process_file_preserves_shebang(self, tmp_path: Path) -> None:
++    def test_process_file_merges_manual_docstring(self, source_processor) -> None:
++        """Test merging manual docstring with auto-generated header into a single docstring."""
++        content = dedent('''
++            """
++            Manual header explaining the module.
++
++            """
++            def foo():
++                return 1
++        ''').strip()
++        processed_content, lines, _ = source_processor("test.py", content)
++        # Only one docstring should exist
++        assert processed_content.count('"""') == 2
++        # Auto-generated marker should be present
++        assert '--- AUTO-GENERATED DOCSTRING ---' in processed_content
++        # Manual header text should still be present
++        assert 'Manual header explaining the module.' in processed_content
++        # Code should follow the docstring
++        assert 'def foo' in processed_content
++
++    def test_process_file_preserves_shebang(self, source_processor) -> None:
+         """Test that shebang lines are preserved."""
+-        python_file = tmp_path / "script.py"
+         content = '''#!/usr/bin/env python3
+ def main():
+     print("Hello")
+ 
+ if __name__ == "__main__":
+     main()'''
+-        python_file.write_text(content)
+-        
+-        process_file(python_file)
+         
+-        processed_content = python_file.read_text()
++        processed_content, _, _ = source_processor("script.py", content)
++
+         assert processed_content.startswith("#!/usr/bin/env python3")
+         assert "Classes/Functions:" in processed_content
+ 
+@@ -320,17 +347,14 @@ DEBUG = True'''
+         # * File should remain unchanged
+         assert python_file.read_text() == content
+ 
+-    def test_process_file_encoding_issues(self, tmp_path: Path) -> None:
++    def test_process_file_encoding_issues(self, source_processor) -> None:
+         """Test handling of files with encoding issues."""
+-        python_file = tmp_path / "encoding_test.py"
+         # * Write some content with special characters
+         content = "# -*- coding: utf-8 -*-\ndef función():\n    return 'héllo'"
+-        python_file.write_text(content, encoding='utf-8')
+         
+         # * Should handle encoding gracefully
+-        process_file(python_file)
++        processed_content, _, _ = source_processor("encoding_test.py", content)
+         
+-        processed_content = python_file.read_text(encoding='utf-8')
+         assert "función" in processed_content
+ 
+     def test_process_file_permission_error(self, tmp_path: Path) -> None:
+@@ -351,28 +375,22 @@ DEBUG = True'''
+             # * Restore write permissions for cleanup
+             python_file.chmod(0o644)
+ 
+-    def test_process_file_verbose_output(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
++    def test_process_file_verbose_output(self, source_processor, capsys: pytest.CaptureFixture[str]) -> None:
+         """Test verbose output during file processing."""
+-        python_file = tmp_path / "verbose_test.py"
+-        python_file.write_text("def test(): pass")
+-        
+-        process_file(python_file, verbose=True)
++        source_processor("verbose_test.py", "def test(): pass", verbose=True)
+         
+         captured = capsys.readouterr()
+         assert "Python:" in captured.out
+-        assert str(python_file) in captured.out
++        assert "verbose_test.py" in captured.out
+ 
+-    def test_process_file_no_changes_needed(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
++    def test_process_file_no_changes_needed(self, source_processor, capsys: pytest.CaptureFixture[str]) -> None:
+         """Test processing a file that doesn't need changes."""
+-        python_file = tmp_path / "no_changes.py"
+         # * Create content that when processed will result in the same header
+         content = '''def test():
+     pass'''
+-        python_file.write_text(content)
+         
+         # * Process once to get the header
+-        process_file(python_file, verbose=False)
+-        first_content = python_file.read_text()
++        _, _, python_file = source_processor("no_changes.py", content, verbose=False)
+         
+         # * Process again to test "no changes" scenario
+         process_file(python_file, verbose=True)
+@@ -405,13 +423,10 @@ DEBUG = True'''
+         # Ensure we report an error
+         assert "Error processing" in captured.out
+ 
+-    def test_process_file_parser_error(self, tmp_path: Path) -> None:
++    def test_process_file_parser_error(self, source_processor) -> None:
+         """Test handling of parsing errors for malformed code."""
+-        python_file = tmp_path / "malformed.py"
+-        python_file.write_text("def func(a,:", encoding="utf-8")
+-
+         # It should not crash
+-        process_file(python_file, verbose=True)
++        source_processor("malformed.py", "def func(a,:", verbose=True)
+ 
+ 
+ class TestDiscoverAndProcessFiles:
+@@ -565,12 +580,4 @@ class TestErrorHandling:
+     def test_format_header_invalid_language(self) -> None:
+         """Test header formatting with invalid language."""
+         with pytest.raises(KeyError):
+-            _format_header([], [], "invalid_language", 0)
+-
+-    def test_process_file_parser_error(self, tmp_path: Path) -> None:
+-        """Test handling of parser errors gracefully."""
+-        python_file = tmp_path / "malformed.py"
+-        python_file.write_text("def func(a,:", encoding="utf-8")
+-
+-        # It should not crash
+-        process_file(python_file, verbose=True)
+\ No newline at end of file
++            _format_header([], [], "invalid_language", 0)
+\ No newline at end of file
+diff --git a/tests/test_header_preservation.py b/tests/test_header_preservation.py
+index 41aa36d..75d2bb1 100644
+--- a/tests/test_header_preservation.py
++++ b/tests/test_header_preservation.py
+@@ -5,8 +5,8 @@
+     
+     Classes/Functions:
+       - Functions:
+-        - test_header_preservation(tmp_path, ext, header_lines, lang) (line 27)
+-        - test_future_import_preservation(tmp_path: Path) (line 68)
++        - test_header_preservation(source_processor, ext, header_lines, lang) (line 30)
++        - test_future_import_preservation(source_processor) -> None (line 64)
+     --- END AUTO-GENERATED DOCSTRING ---
+ """
+ import pytest
+@@ -24,12 +24,10 @@ HEADER_CASES = [
+ ]
+ 
+ @pytest.mark.parametrize('ext,header_lines,lang', HEADER_CASES)
+-def test_header_preservation(tmp_path, ext, header_lines, lang):
++def test_header_preservation(source_processor, ext, header_lines, lang):
+     """
+     Verifies that language-specific headers remain unchanged and in place after processing.
+     """
+-    # Create a sample file with header lines followed by minimal code
+-    file_path = tmp_path / f'test{ext}'
+     # Minimal code snippet per language
+     code_snippets = {
+         'python': ['def foo():', '    pass'],
+@@ -40,13 +38,8 @@ def test_header_preservation(tmp_path, ext, header_lines, lang):
+     }
+     content_lines = header_lines + [''] + code_snippets[lang]
+     file_text = '\n'.join(content_lines)
+-    file_path.write_text(file_text, encoding='utf-8')
+ 
+-    # Process the file
+-    process_file(file_path)
+-
+-    # Read back the content
+-    result_lines = file_path.read_text(encoding='utf-8').splitlines()
++    _, result_lines, _ = source_processor(f'test{ext}', file_text)
+ 
+     # Header lines should remain identical at the top
+     assert result_lines[:len(header_lines)] == header_lines
+@@ -65,25 +58,20 @@ def test_header_preservation(tmp_path, ext, header_lines, lang):
+     # The original code snippet should appear after the docstring block
+     assert code_snippets[lang][0] in '\n'.join(result_lines)
+ 
+-def test_future_import_preservation(tmp_path: Path):
++def test_future_import_preservation(source_processor) -> None:
+     """
+     Verifies that `from __future__ import` statements are preserved at the very top
+     of a Python file, before the agent-generated docstring.
+     """
+-    file_path = tmp_path / 'test_future.py'
+     content = [
+         "from __future__ import annotations",
+         "",
+         "class MyClass:",
+         "    pass",
+     ]
+-    file_path.write_text('\n'.join(content), encoding='utf-8')
+-
+-    # Process the file
+-    process_file(file_path)
++    file_text = '\n'.join(content)
+ 
+-    # Read back the content
+-    result_lines = file_path.read_text(encoding='utf-8').splitlines()
++    _, result_lines, _ = source_processor('test_future.py', file_text)
+ 
+     # The first line must be the __future__ import
+     assert result_lines[0] == "from __future__ import annotations"
+diff --git a/tests/test_line_numbers.py b/tests/test_line_numbers.py
+index 178a5b2..f774083 100644
+--- a/tests/test_line_numbers.py
++++ b/tests/test_line_numbers.py
+@@ -5,11 +5,11 @@
+     
+     Classes/Functions:
+     - TestLineNumberCorrection (line 23):
+-      - test_python_line_numbers_without_existing_docstring(tmp_path: Path) -> None (line 24)
+-      - test_python_line_numbers_with_existing_docstring(tmp_path: Path) -> None (line 73)
+-      - test_go_line_numbers_correction(tmp_path: Path) -> None (line 119)
+-      - test_line_numbers_with_shebang(tmp_path: Path) -> None (line 175)
+-      - test_line_numbers_after_multiple_updates(tmp_path: Path) -> None (line 231)
++      - test_python_line_numbers_without_existing_docstring(source_processor) -> None (line 24)
++      - test_python_line_numbers_with_existing_docstring(source_processor) -> None (line 65)
++      - test_go_line_numbers_correction(source_processor) -> None (line 101)
++      - test_line_numbers_with_shebang(source_processor) -> None (line 149)
++      - test_line_numbers_after_multiple_updates(tmp_path: Path, source_processor) -> None (line 175)
+     --- END AUTO-GENERATED DOCSTRING ---
+ """
+ from __future__ import annotations
+@@ -21,7 +21,7 @@ from agent_docstrings.core import process_file
+ 
+ 
+ class TestLineNumberCorrection:
+-    def test_python_line_numbers_without_existing_docstring(self, tmp_path: Path) -> None:
++    def test_python_line_numbers_without_existing_docstring(self, source_processor) -> None:
+         """Test that line numbers are correct when adding docstring to file without one."""
+         source_code = dedent("""
+             def first_function():
+@@ -38,15 +38,7 @@ class TestLineNumberCorrection:
+                 return "hello"
+         """).strip()
+         
+-        python_file = tmp_path / "test_lines.py"
+-        python_file.write_text(source_code)
+-        
+-        # * Process the file
+-        process_file(python_file, verbose=False)
+-        
+-        # * Read the processed content
+-        result_content = python_file.read_text()
+-        lines = result_content.splitlines()
++        _, lines, _ = source_processor("test_lines.py", source_code)
+         
+         # * Find the docstring content
+         docstring_lines = [line for line in lines if "line" in line and ("function" in line or "method" in line)]
+@@ -70,7 +62,7 @@ class TestLineNumberCorrection:
+                 actual_line = lines[line_num - 1]
+                 assert "def method_one(self):" in actual_line
+ 
+-    def test_python_line_numbers_with_existing_docstring(self, tmp_path: Path) -> None:
++    def test_python_line_numbers_with_existing_docstring(self, source_processor) -> None:
+         """Test line numbers when updating existing docstring."""
+         source_code = dedent('''
+             """
+@@ -86,15 +78,7 @@ class TestLineNumberCorrection:
+                     return 1
+         ''').strip()
+         
+-        python_file = tmp_path / "test_existing.py"
+-        python_file.write_text(source_code)
+-        
+-        # * Process the file
+-        process_file(python_file, verbose=False)
+-        
+-        # * Read the processed content
+-        result_content = python_file.read_text()
+-        lines = result_content.splitlines()
++        result_content, lines, _ = source_processor("test_existing.py", source_code)
+         
+         # * Find function definitions and verify line numbers in docstring
+         first_func_line = None
+@@ -110,13 +94,11 @@ class TestLineNumberCorrection:
+                 method_line = i
+         
+         # * Verify docstring has correct line numbers
+-        docstring_content = result_content
+-        
+-        assert f"first_function() (line {first_func_line})" in docstring_content
+-        assert f"MyClass (line {class_line}):" in docstring_content
+-        assert f"method_one() (line {method_line})" in docstring_content
++        assert f"first_function() (line {first_func_line})" in result_content
++        assert f"MyClass (line {class_line}):" in result_content
++        assert f"method_one() (line {method_line})" in result_content
+ 
+-    def test_go_line_numbers_correction(self, tmp_path: Path) -> None:
++    def test_go_line_numbers_correction(self, source_processor) -> None:
+         """Test line numbers for Go files (skipped if Go is unsupported)."""
+         from agent_docstrings.core import EXT_TO_LANG  # type: ignore
+ 
+@@ -141,15 +123,7 @@ class TestLineNumberCorrection:
+             }
+         """).strip()
+         
+-        go_file = tmp_path / "test_lines.go"
+-        go_file.write_text(source_code)
+-        
+-        # * Process the file
+-        process_file(go_file, verbose=False)
+-        
+-        # * Read the processed content
+-        result_content = go_file.read_text()
+-        lines = result_content.splitlines()
++        result_content, lines, _ = source_processor("test_lines.go", source_code)
+         
+         # * Find actual definitions
+         interface_line = None
+@@ -172,7 +146,7 @@ class TestLineNumberCorrection:
+         if method_line:
+             assert f"MethodOnStruct" in result_content and f"line {method_line}" in result_content
+ 
+-    def test_line_numbers_with_shebang(self, tmp_path: Path) -> None:
++    def test_line_numbers_with_shebang(self, source_processor) -> None:
+         """Test line numbers when file has shebang and encoding."""
+         source_code = dedent("""
+             #!/usr/bin/env python3
+@@ -186,15 +160,7 @@ class TestLineNumberCorrection:
+                     main()
+         """).strip()
+         
+-        python_file = tmp_path / "test_shebang.py"
+-        python_file.write_text(source_code)
+-        
+-        # * Process the file
+-        process_file(python_file, verbose=False)
+-        
+-        # * Read the processed content
+-        result_content = python_file.read_text()
+-        lines = result_content.splitlines()
++        result_content, lines, _ = source_processor("test_shebang.py", source_code)
+         
+         # * Verify shebang and encoding are preserved
+         assert lines[0] == "#!/usr/bin/env python3"
+@@ -206,7 +172,7 @@ class TestLineNumberCorrection:
+         assert 'Application' in result_content
+         assert 'run()' in result_content
+ 
+-    def test_line_numbers_after_multiple_updates(self, tmp_path: Path) -> None:
++    def test_line_numbers_after_multiple_updates(self, tmp_path: Path, source_processor) -> None:
+         """Test that line numbers remain correct after multiple updates."""
+         source_code = dedent("""
+             def original_function():
+@@ -217,12 +183,8 @@ class TestLineNumberCorrection:
+                     pass
+         """).strip()
+         
+-        python_file = tmp_path / "test_multiple.py"
+-        python_file.write_text(source_code)
+-        
+         # * First processing
+-        process_file(python_file, verbose=False)
+-        first_result = python_file.read_text()
++        first_result, _, python_file = source_processor("test_multiple.py", source_code)
+         
+         # * Second processing (should update existing docstring)
+         process_file(python_file, verbose=False)
+diff --git a/tests/test_writer.py b/tests/test_writer.py
+index 5a7d029..14d1ea9 100644
+--- a/tests/test_writer.py
++++ b/tests/test_writer.py
+@@ -5,7 +5,7 @@
+     
+     Classes/Functions:
+       - Functions:
+-        - test_process_file_inserts_header(tmp_path: Path) -> None (line 19)
++        - test_process_file_inserts_header(source_processor) -> None (line 19)
+     --- END AUTO-GENERATED DOCSTRING ---
+ """
+ from __future__ import annotations
+@@ -16,7 +16,7 @@ from textwrap import dedent
+ from agent_docstrings.core import process_file
+ 
+ 
+-def test_process_file_inserts_header(tmp_path: Path) -> None:
++def test_process_file_inserts_header(source_processor) -> None:
+     """Ensures :pyfunc:`process_file` adds a header to a Python source file."""
+     file_content = dedent(
+         """
+@@ -26,12 +26,7 @@ def test_process_file_inserts_header(tmp_path: Path) -> None:
+         """
+     ).lstrip()
+ 
+-    src_file = tmp_path / "greet.py"
+-    src_file.write_text(file_content, encoding="utf-8")
++    new_content, _, _ = source_processor("greet.py", file_content)
+ 
+-    # * Execute processing.
+-    process_file(src_file, verbose=False)
+-
+-    new_content = src_file.read_text(encoding="utf-8")
+     assert new_content.startswith('"""')  # * The generated docstring should be at the top.
+     assert "Greeter" in new_content
+\ No newline at end of file

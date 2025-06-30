@@ -5,8 +5,8 @@
     
     Classes/Functions:
       - Functions:
-        - test_header_preservation(tmp_path, ext, header_lines, lang) (line 27)
-        - test_future_import_preservation(tmp_path: Path) (line 68)
+        - test_header_preservation(source_processor, ext, header_lines, lang) (line 30)
+        - test_future_import_preservation(source_processor) -> None (line 64)
     --- END AUTO-GENERATED DOCSTRING ---
 """
 import pytest
@@ -24,12 +24,10 @@ HEADER_CASES = [
 ]
 
 @pytest.mark.parametrize('ext,header_lines,lang', HEADER_CASES)
-def test_header_preservation(tmp_path, ext, header_lines, lang):
+def test_header_preservation(source_processor, ext, header_lines, lang):
     """
     Verifies that language-specific headers remain unchanged and in place after processing.
     """
-    # Create a sample file with header lines followed by minimal code
-    file_path = tmp_path / f'test{ext}'
     # Minimal code snippet per language
     code_snippets = {
         'python': ['def foo():', '    pass'],
@@ -40,13 +38,8 @@ def test_header_preservation(tmp_path, ext, header_lines, lang):
     }
     content_lines = header_lines + [''] + code_snippets[lang]
     file_text = '\n'.join(content_lines)
-    file_path.write_text(file_text, encoding='utf-8')
 
-    # Process the file
-    process_file(file_path)
-
-    # Read back the content
-    result_lines = file_path.read_text(encoding='utf-8').splitlines()
+    _, result_lines, _ = source_processor(f'test{ext}', file_text)
 
     # Header lines should remain identical at the top
     assert result_lines[:len(header_lines)] == header_lines
@@ -65,25 +58,20 @@ def test_header_preservation(tmp_path, ext, header_lines, lang):
     # The original code snippet should appear after the docstring block
     assert code_snippets[lang][0] in '\n'.join(result_lines)
 
-def test_future_import_preservation(tmp_path: Path):
+def test_future_import_preservation(source_processor) -> None:
     """
     Verifies that `from __future__ import` statements are preserved at the very top
     of a Python file, before the agent-generated docstring.
     """
-    file_path = tmp_path / 'test_future.py'
     content = [
         "from __future__ import annotations",
         "",
         "class MyClass:",
         "    pass",
     ]
-    file_path.write_text('\n'.join(content), encoding='utf-8')
+    file_text = '\n'.join(content)
 
-    # Process the file
-    process_file(file_path)
-
-    # Read back the content
-    result_lines = file_path.read_text(encoding='utf-8').splitlines()
+    _, result_lines, _ = source_processor('test_future.py', file_text)
 
     # The first line must be the __future__ import
     assert result_lines[0] == "from __future__ import annotations"

@@ -13,7 +13,7 @@
         - _format_header(classes: List[ClassInfo], functions: List[SignatureInfo], language: str, line_offset: int) -> str (line 242)
         - get_preserved_header_end_line(lines: List[str], language: str) -> int (line 262)
         - process_file(path: Path, verbose: bool = False) -> None (line 344)
-        - discover_and_process_files(directories: List[str], verbose: bool = False) -> None (line 414)
+        - discover_and_process_files(directories: List[str], verbose: bool = False) -> None (line 468)
     --- END AUTO-GENERATED DOCSTRING ---
 """
 from __future__ import annotations
@@ -390,15 +390,69 @@ def process_file(path: Path, verbose: bool = False) -> None:
         # * Now create the final header with correct line numbers
         final_header = _format_header(classes, functions, language, line_offset)
         
-        new_content_parts = []
-        if file_prefix:
-            new_content_parts.append(file_prefix)
-        
-        new_content_parts.append(final_header)
-        new_content_parts.append(cleaned_body.strip())
-        
-        # Use single newlines to test composition theory
-        new_content = "\n".join(filter(None, new_content_parts))
+        # Attempt to merge auto-generated header into existing manual docstring for Python
+        merged_body = None
+        if language == "python":
+            # Split cleaned body into lines
+            body_lines = cleaned_body.splitlines()
+            # Find first non-empty line
+            idx = 0
+            while idx < len(body_lines) and body_lines[idx].strip() == "":
+                idx += 1
+            # Check for manual docstring start
+            if idx < len(body_lines) and body_lines[idx].strip().startswith(('"""', "'''")):
+                delim = body_lines[idx].strip()
+                # Ensure it's not an existing auto-generated docstring
+                marker_present = False
+                for i in range(idx, min(idx + 5, len(body_lines))):
+                    if DOCSTRING_START_MARKER in body_lines[i]:
+                        marker_present = True
+                        break
+                if not marker_present:
+                    # Find end of manual docstring
+                    end_idx = None
+                    for j in range(idx + 1, len(body_lines)):
+                        if body_lines[j].strip() == delim:
+                            end_idx = j
+                            break
+                    if end_idx is not None:
+                        manual_inner = body_lines[idx + 1:end_idx]
+                        # Compute auto header content lines with correct offset for merge
+                        # temp_header_lines holds the auto header lines including delimiters
+                        # content_lines length is temp_header_lines minus start/end markers
+                        offset_override = len(temp_header_lines) - 2
+                        # Generate only the header content lines (without triple-quote delimiters)
+                        header_inner = _get_header_content_lines(
+                            classes, functions, language, offset_override
+                        )
+                        merged_lines = []
+                        # Preserve leading blank lines before manual docstring
+                        merged_lines.extend(body_lines[:idx])
+                        # Start merged docstring with manual delimiter
+                        merged_lines.append(delim)
+                        # Insert auto-generated header content
+                        merged_lines.extend(header_inner)
+                        # Insert original manual docstring content
+                        merged_lines.extend(manual_inner)
+                        # Close merged docstring with manual delimiter
+                        merged_lines.append(delim)
+                        # Append rest of body after original docstring
+                        merged_lines.extend(body_lines[end_idx + 1:])
+                        merged_body = "\n".join(merged_lines)
+        if merged_body is not None:
+            if file_prefix:
+                new_content = file_prefix + "\n" + merged_body.lstrip("\n")
+            else:
+                new_content = merged_body.lstrip("\n")
+        else:
+            # Default behavior: insert separate docstring
+            new_content_parts = []
+            if file_prefix:
+                new_content_parts.append(file_prefix)
+            new_content_parts.append(final_header)
+            new_content_parts.append(cleaned_body.strip())
+            # Use single newlines to test composition theory
+            new_content = "\n".join(filter(None, new_content_parts))
 
         if new_content.strip() != original_content.strip():
             path.write_text(new_content, encoding="utf-8", newline="\n")

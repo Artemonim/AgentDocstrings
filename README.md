@@ -17,6 +17,22 @@
 
 A command-line tool to auto-generate and update file-level docstrings summarizing classes and functions. Useful for maintaining a high-level overview of your files, especially in projects with code generated or modified by AI assistants.
 
+## Supported Languages
+
+| Language   | File Extensions                     | Features                       |
+| ---------- | ----------------------------------- | ------------------------------ |
+| Python     | `.py`                               | Classes, functions, methods    |
+| Java       | `.java`                             | Classes, methods               |
+| Kotlin     | `.kt`                               | Classes, functions             |
+| Go         | `.go`                               | Functions, methods             |
+| PowerShell | `.ps1`, `.psm1`                     | Functions                      |
+| Delphi     | `.pas`                              | Classes, procedures, functions |
+| C          | `.c`, `.h`                          | Functions                      |
+| C++        | `.cpp`, `.hpp`, `.cc`, `.cxx`, `.h` | Functions, classes             |
+| C#         | `.cs`                               | Classes, methods               |
+| JavaScript | `.js`, `.jsx`                       | Functions, classes             |
+| TypeScript | `.ts`, `.tsx`                       | Functions, classes             |
+
 ## Why?
 
 When working in Cursor and similar IDEs, Agents often start reading files from the beginning. And regarding Cursor's behavior during the script's creation, in normal mode, the model reads 250 lines of code per call, and in MAX mode, 750 lines. However, I have projects with files over 1000 lines of code, which are not very appropriate to divide into smaller files. And anyway, Agent still have to call reading tools for each individual file.
@@ -38,11 +54,6 @@ In addition to the advantage of quick navigation, the initial docstring also ser
 
 This tool is compatible with **Python 3.8, 3.9, 3.10, 3.11, 3.12, and 3.13**.
 
-### Key compatibility features:
-
--   Uses `typing.Union` instead of `|` syntax for Python 3.8/3.9 compatibility
--   Uses `typing.Tuple` instead of built-in `tuple` for type hints
--   Compatible with `from __future__ import annotations`
 -   No dependency on external libraries
 
 ## Installation
@@ -56,7 +67,7 @@ pip install agent-docstrings
 ### From source
 
 ```bash
-git clone https://github.com/yourname/agent-docstrings.git
+git clone https://github.com/Artemonim/agent-docstrings.git
 cd agent-docstrings
 pip install -e .
 ```
@@ -151,22 +162,6 @@ It is important to understand the nuances of this tool to use it effectively. Th
         -   **Scope Confusion**: The brace-counting mechanism can be easily confused by comments or strings containing `{` or `}` characters, leading to incorrect structure detection.
 
 -   **In-Place File Modification**: The tool modifies files directly. It is designed to correctly remove its own previously generated headers, but it might struggle with files that have very complex, pre-existing header comments, potentially leading to incorrect placement of the new header.
-
-## Supported Languages
-
-| Language   | File Extensions                     | Features                       |
-| ---------- | ----------------------------------- | ------------------------------ |
-| Python     | `.py`                               | Classes, functions, methods    |
-| Java       | `.java`                             | Classes, methods               |
-| Kotlin     | `.kt`                               | Classes, functions             |
-| Go         | `.go`                               | Functions, methods             |
-| PowerShell | `.ps1`, `.psm1`                     | Functions                      |
-| Delphi     | `.pas`                              | Classes, procedures, functions |
-| C          | `.c`, `.h`                          | Functions                      |
-| C++        | `.cpp`, `.hpp`, `.cc`, `.cxx`, `.h` | Functions, classes             |
-| C#         | `.cs`                               | Classes, methods               |
-| JavaScript | `.js`, `.jsx`                       | Functions, classes             |
-| TypeScript | `.ts`, `.tsx`                       | Functions, classes             |
 
 ## Examples
 
