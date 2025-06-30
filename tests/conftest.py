@@ -5,19 +5,20 @@
     
     Classes/Functions:
       - Functions:
-        - fixtures_dir() -> Path (line 33)
-        - sample_python_file(tmp_path: Path) -> Iterator[Path] (line 39)
-        - sample_kotlin_file(tmp_path: Path) -> Iterator[Path] (line 61)
-        - sample_javascript_file(tmp_path: Path) -> Iterator[Path] (line 87)
-        - sample_typescript_file(tmp_path: Path) -> Iterator[Path] (line 120)
-        - sample_csharp_file(tmp_path: Path) -> Iterator[Path] (line 155)
-        - sample_cpp_file(tmp_path: Path) -> Iterator[Path] (line 198)
-        - complex_python_file(tmp_path: Path) -> Iterator[Path] (line 249)
-        - python_file_with_existing_header(tmp_path: Path) -> Iterator[Path] (line 357)
-        - multilanguage_project(tmp_path: Path) -> Iterator[Path] (line 390)
-        - empty_files_project(tmp_path: Path) -> Iterator[Path] (line 427)
-        - sample_files_by_language(tmp_path: Path) -> Iterator[Dict[str, Path]] (line 447)
-        - malformed_files_project(tmp_path: Path) -> Iterator[Path] (line 479)
+        - source_processor(tmp_path: Path) (line 36)
+        - fixtures_dir() -> Path (line 64)
+        - sample_python_file(tmp_path: Path) -> Iterator[Path] (line 70)
+        - sample_kotlin_file(tmp_path: Path) -> Iterator[Path] (line 92)
+        - sample_javascript_file(tmp_path: Path) -> Iterator[Path] (line 118)
+        - sample_typescript_file(tmp_path: Path) -> Iterator[Path] (line 151)
+        - sample_csharp_file(tmp_path: Path) -> Iterator[Path] (line 186)
+        - sample_cpp_file(tmp_path: Path) -> Iterator[Path] (line 229)
+        - complex_python_file(tmp_path: Path) -> Iterator[Path] (line 280)
+        - python_file_with_existing_header(tmp_path: Path) -> Iterator[Path] (line 388)
+        - multilanguage_project(tmp_path: Path) -> Iterator[Path] (line 421)
+        - empty_files_project(tmp_path: Path) -> Iterator[Path] (line 458)
+        - sample_files_by_language(tmp_path: Path) -> Iterator[Dict[str, Path]] (line 478)
+        - malformed_files_project(tmp_path: Path) -> Iterator[Path] (line 510)
     --- END AUTO-GENERATED DOCSTRING ---
 """
 from __future__ import annotations
@@ -27,6 +28,36 @@ from pathlib import Path
 from typing import Iterator, Dict
 
 import pytest
+
+from agent_docstrings.core import process_file
+
+
+@pytest.fixture
+def source_processor(tmp_path: Path):
+    """A factory fixture that returns a helper function to process source code.
+
+    The helper function creates a temporary file with the given source code,
+    runs the main `process_file` logic on it, and returns the results.
+
+    Returns:
+        A callable that takes a filename and source code string, and returns
+        a tuple containing:
+        - The processed file content (str)
+        - The processed file content as a list of lines (list[str])
+        - The path to the processed file (Path)
+    """
+
+    def _process(
+        filename: str, source_code: str, verbose: bool = False
+    ) -> tuple[str, list[str], Path]:
+        """Creates a file with source_code, runs process_file, and returns content."""
+        source_path = tmp_path / filename
+        source_path.write_text(source_code, encoding="utf-8")
+        process_file(source_path, verbose=verbose)
+        content = source_path.read_text(encoding="utf-8")
+        return content, content.splitlines(), source_path
+
+    return _process
 
 
 @pytest.fixture(scope="session")

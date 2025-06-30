@@ -13,6 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Configuration file format validation
 -   Switching to the Abstract Syntax Tree (AST)
 
+## [1.2.1] - 2025-06-30
+
+### Added
+
+-   **Python Docstring Merging**: Implemented a feature to merge the auto-generated header with existing manual module-level docstrings in Python files, preserving user-written content.
+
+### Changed
+
+-   **Test Suite Refactoring**: Significantly refactored the test suite by introducing a `source_processor` fixture. This simplifies test code, removes boilerplate for file creation, and improves readability across all test files.
+
+### Documentation
+
+-   Updated the repository URL in `README.md`.
+-   Reorganized `README.md` for better readability by moving the "Supported Languages" section to the top.
+
 ## [1.2.0] - 2025-06-29
 
 ### Added
@@ -21,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Header Preservation**: Implemented intelligent detection to preserve file headers (e.g., shebangs, encoding declarations, Go package definitions, leading comments/imports) across all supported languages.
 -   **Expanded Language Support**: Added initial processing support and type mappings for Java, PowerShell, Delphi, and C.
 -   **Enhanced Testing**: Introduced new test suites for determinism, header preservation, and line number accuracy to ensure core feature reliability.
+-   **Initial release of `agent-docstrings`**
 
 ### Changed
 

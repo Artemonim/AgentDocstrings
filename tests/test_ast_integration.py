@@ -5,13 +5,13 @@
     
     Classes/Functions:
     - TestPythonASTIntegration (line 25):
-      - test_python_ast_integration_complex(tmp_path: Path) -> None (line 26)
-      - test_python_ast_integration_async_functions(tmp_path: Path) -> None (line 74)
-      - test_python_ast_integration_nested_classes(tmp_path: Path) -> None (line 101)
-    - TestGoASTIntegration (line 142):
-      - test_go_ast_integration_interfaces(tmp_path: Path) -> None (line 143)
-      - test_go_ast_integration_methods(tmp_path: Path) -> None (line 196)
-      - test_go_ast_fallback_integration(tmp_path: Path) -> None (line 245)
+      - test_python_ast_integration_complex(source_processor) -> None (line 26)
+      - test_python_ast_integration_async_functions(source_processor) -> None (line 67)
+      - test_python_ast_integration_nested_classes(source_processor) -> None (line 90)
+    - TestGoASTIntegration (line 126):
+      - test_go_ast_integration_interfaces(source_processor) -> None (line 127)
+      - test_go_ast_integration_methods(source_processor) -> None (line 173)
+      - test_go_ast_fallback_integration(source_processor) -> None (line 218)
     --- END AUTO-GENERATED DOCSTRING ---
 """
 from __future__ import annotations
@@ -23,7 +23,7 @@ from agent_docstrings.core import process_file
 
 
 class TestPythonASTIntegration:
-    def test_python_ast_integration_complex(self, tmp_path: Path) -> None:
+    def test_python_ast_integration_complex(self, source_processor) -> None:
         """Test full integration of Python AST parser with complex code."""
         source_code = dedent("""
             from typing import List, Dict, Optional
@@ -51,14 +51,7 @@ class TestPythonASTIntegration:
                 return True
         """).strip()
         
-        python_file = tmp_path / "complex_test.py"
-        python_file.write_text(source_code)
-        
-        # * Process the file
-        process_file(python_file, verbose=False)
-        
-        # * Read the processed content
-        result_content = python_file.read_text()
+        result_content, _, _ = source_processor("complex_test.py", source_code)
         
         # * Verify AST-generated docstring is present
         assert "--- AUTO-GENERATED DOCSTRING ---" in result_content
@@ -71,7 +64,7 @@ class TestPythonASTIntegration:
         assert "from typing import List, Dict, Optional" in result_content
         assert "class DataProcessor:" in result_content
 
-    def test_python_ast_integration_async_functions(self, tmp_path: Path) -> None:
+    def test_python_ast_integration_async_functions(self, source_processor) -> None:
         """Test integration with async functions."""
         source_code = dedent("""
             import asyncio
@@ -87,18 +80,14 @@ class TestPythonASTIntegration:
                 pass
         """).strip()
         
-        python_file = tmp_path / "async_test.py"
-        python_file.write_text(source_code)
-        
-        process_file(python_file, verbose=False)
-        result_content = python_file.read_text()
+        result_content, _, _ = source_processor("async_test.py", source_code)
         
         # * Verify async functions are properly parsed
         assert "process_async(data: bytes) -> str" in result_content
         assert "global_async_function() -> None" in result_content
         assert "AsyncProcessor" in result_content
 
-    def test_python_ast_integration_nested_classes(self, tmp_path: Path) -> None:
+    def test_python_ast_integration_nested_classes(self, source_processor) -> None:
         """Test integration with nested classes."""
         source_code = dedent("""
             class OuterClass:
@@ -118,11 +107,7 @@ class TestPythonASTIntegration:
                 return True
         """).strip()
         
-        python_file = tmp_path / "nested_test.py"
-        python_file.write_text(source_code)
-        
-        process_file(python_file, verbose=False)
-        result_content = python_file.read_text()
+        result_content, lines, _ = source_processor("nested_test.py", source_code)
         
         # * Verify nested class structure is properly represented
         assert "OuterClass" in result_content
@@ -132,7 +117,6 @@ class TestPythonASTIntegration:
         assert "standalone_function() -> bool" in result_content
         
         # * Verify proper indentation in docstring
-        lines = result_content.split('\n')
         docstring_lines = [line for line in lines if '- ' in line and ('Class' in line or 'method' in line or 'function' in line)]
         
         # * Should have proper hierarchical structure
@@ -140,7 +124,7 @@ class TestPythonASTIntegration:
 
 
 class TestGoASTIntegration:
-    def test_go_ast_integration_interfaces(self, tmp_path: Path) -> None:
+    def test_go_ast_integration_interfaces(self, source_processor) -> None:
         """Test full integration of Go AST parser with interfaces."""
         source_code = dedent("""
             package main
@@ -169,14 +153,7 @@ class TestGoASTIntegration:
             }
         """).strip()
         
-        go_file = tmp_path / "interfaces_test.go"
-        go_file.write_text(source_code)
-        
-        # * Process the file
-        process_file(go_file, verbose=False)
-        
-        # * Read the processed content
-        result_content = go_file.read_text()
+        result_content, _, _ = source_processor("interfaces_test.go", source_code)
         
         # * Verify Go AST-generated docstring is present
         assert "--- AUTO-GENERATED DOCSTRING ---" in result_content
@@ -193,7 +170,7 @@ class TestGoASTIntegration:
         assert "package main" in result_content
         assert "type Reader interface" in result_content
 
-    def test_go_ast_integration_methods(self, tmp_path: Path) -> None:
+    def test_go_ast_integration_methods(self, source_processor) -> None:
         """Test integration with Go methods on structs."""
         source_code = dedent("""
             package main
@@ -227,11 +204,7 @@ class TestGoASTIntegration:
             }
         """).strip()
         
-        go_file = tmp_path / "methods_test.go"
-        go_file.write_text(source_code)
-        
-        process_file(go_file, verbose=False)
-        result_content = go_file.read_text()
+        result_content, _, _ = source_processor("methods_test.go", source_code)
         
         # * Verify methods are properly parsed
         assert "func (dp *DataProcessor) ProcessData" in result_content
@@ -242,7 +215,7 @@ class TestGoASTIntegration:
         assert "context.Context" in result_content
         assert "map[string]interface{}" in result_content
 
-    def test_go_ast_fallback_integration(self, tmp_path: Path) -> None:
+    def test_go_ast_fallback_integration(self, source_processor) -> None:
         """Test Go AST parser fallback to regex when Go toolchain unavailable."""
         source_code = dedent("""
             package main
@@ -256,13 +229,9 @@ class TestGoASTIntegration:
             }
         """).strip()
         
-        go_file = tmp_path / "fallback_test.go"
-        go_file.write_text(source_code)
+        result_content, _, _ = source_processor("fallback_test.go", source_code)
         
         # * Process the file (will use AST if available, regex if not)
-        process_file(go_file, verbose=False)
-        result_content = go_file.read_text()
-        
         # * Verify some form of processing occurred
         assert "--- AUTO-GENERATED DOCSTRING ---" in result_content
         assert "func" in result_content
