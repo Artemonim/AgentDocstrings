@@ -123,7 +123,7 @@ class MathUtils:
 
 This tool is compatible with:
 
--   **Python**: 3.8, 3.9, 3.10, 3.11, 3.12, and 3.13
+-   **Python**: 3.10, 3.11, 3.12, and 3.13
 -   **Go**: >=1.22 (required only for building the Go parser during package development)
 
 -   No dependency on external Python libraries at runtime
