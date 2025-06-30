@@ -379,7 +379,6 @@ def process_file(path: Path, verbose: bool = False, beta: bool = False) -> None:
                  path.write_text(
                     (file_prefix + "\n" + cleaned_body).lstrip(),
                     encoding="utf-8",
-                    newline="\n",
                 )
             return
 
@@ -468,7 +467,7 @@ def process_file(path: Path, verbose: bool = False, beta: bool = False) -> None:
 
         # Only write changes if content changed
         if new_content != original_content:
-            path.write_text(new_content, encoding="utf-8", newline="\n")
+            path.write_text(new_content, encoding="utf-8")
             if verbose:
                 print(f"Processed {language.capitalize()}: {path}")
         elif verbose:
