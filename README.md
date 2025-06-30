@@ -63,14 +63,10 @@ This is especially useful for AI-Agents: quickly understanding large files, navi
 
 ## Why Use Agent Docstrings?
 
-In any large-scale project, quickly understanding the contents of a file is a major challenge. Scrolling through hundreds or thousands of lines just to find a specific function or get a sense of the file's architecture is inefficient and slows down development.
+**Agent Docstrings** providing a scannable "Table of Contents" at the beginning of each file. This offers several key advantages:
 
-**Agent Docstrings** solves this by providing an up-to-date, scannable "Table of Contents" at the beginning of each file. This offers several key advantages:
-
--   **Improved Code Navigation**: Get an immediate high-level overview of any file's structure without reading its entire content. Jump directly to the code you need.
--   **Faster Onboarding**: AI assistants (and New developers) can familiarize themselves with the codebase much faster. The generated docstring acts as a map to the file's contents.
-
-While the tool was initially inspired by the needs of AI-powered IDEs like Cursor, its utility extends to any developer or team looking to improve code maintainability and comprehension.
+-   **Faster Onboarding**: AI Agents can familiarize themselves with the codebase much faster. The generated docstring acts as a map to the file's contents.
+-   **Improved Code Navigation**: AI get an immediate high-level overview of any file's structure without reading its entire content. Jump directly to the code it need.
 
 ## Features
 
