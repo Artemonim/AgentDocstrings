@@ -3,7 +3,7 @@ name: CI
 on:
     push:
         branches: [master]
-    pull_request:
+    pull_request_target:
         branches: [master]
 
 jobs:
@@ -17,6 +17,8 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
 
             - name: Set up Go
               uses: actions/setup-go@v5
