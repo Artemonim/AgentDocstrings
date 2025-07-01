@@ -22,7 +22,6 @@ from __future__ import annotations
             - test_process_unsupported_extension(tmp_path: Path) -> None (line 249)
             - test_process_python_file_creates_header(source_processor) -> None (line 258)
             - test_process_file_with_existing_header(source_processor) -> None (line 276)
-            - test_process_file_merges_manual_docstring(source_processor) -> None (line 292)
             - test_process_file_preserves_shebang(source_processor) -> None (line 312)
             - test_process_empty_file(tmp_path: Path) -> None (line 326)
             - test_process_file_no_classes_or_functions(tmp_path: Path) -> None (line 335)
@@ -290,26 +289,6 @@ class NewClass:
         assert "NewClass" in processed_content
         assert "OldClass" not in processed_content
 
-    def test_process_file_merges_manual_docstring(self, source_processor) -> None:
-        """Test merging manual docstring with auto-generated header into a single docstring."""
-        content = dedent('''
-            """
-            Manual header explaining the module.
-
-            """
-            def foo():
-                return 1
-        ''').strip()
-        processed_content, lines, _ = source_processor("test.py", content)
-        # Only one docstring should exist
-        assert processed_content.count('"""') == 2
-        # Auto-generated marker should be present
-        assert '--- AUTO-GENERATED DOCSTRING ---' in processed_content
-        # Manual header text should still be present
-        assert 'Manual header explaining the module.' in processed_content
-        # Code should follow the docstring
-        assert 'def foo' in processed_content
-
     def test_process_file_preserves_shebang(self, source_processor) -> None:
         """Test that shebang lines are preserved."""
         content = '''#!/usr/bin/env python3
@@ -320,9 +299,10 @@ if __name__ == "__main__":
     main()'''
         
         processed_content, _, _ = source_processor("script.py", content)
-
+        
         assert processed_content.startswith("#!/usr/bin/env python3")
-        assert "Classes/Functions:" in processed_content
+        assert "def main" in processed_content
+        assert "--- AUTO-GENERATED DOCSTRING ---" in processed_content
 
     def test_process_empty_file(self, tmp_path: Path) -> None:
         """Test processing an empty file."""

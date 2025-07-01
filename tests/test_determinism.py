@@ -8,8 +8,35 @@
 """
 import pytest
 from agent_docstrings.core import process_file
+from pathlib import Path
 
 # determinism test ensures that after inserting header once, subsequent runs do not modify the file
+
+def test_process_file_determinism_with_manual_python_docstring(tmp_path):
+    """
+    Tests that a Python file with a pre-existing manual docstring is handled
+    correctly and idempotently, by placing the agent docstring before the
+    manual one without duplication on subsequent runs.
+    """
+    # Prepare the test file
+    fixture_path = Path("tests/fixtures/python_with_manual_docstring.py")
+    original_content = fixture_path.read_text(encoding="utf-8")
+    test_file_path = tmp_path / "test.py"
+    test_file_path.write_text(original_content, encoding="utf-8")
+
+    # First run: should add the agent docstring
+    process_file(test_file_path)
+    content_after_first_run = test_file_path.read_text(encoding="utf-8")
+
+    # Second run: should NOT change the file
+    process_file(test_file_path)
+    content_after_second_run = test_file_path.read_text(encoding="utf-8")
+    
+    # Assert that the first run actually added the docstring
+    assert original_content != content_after_first_run
+    # Assert that the second run made no changes
+    assert content_after_first_run == content_after_second_run
+
 
 def test_process_file_determinism(sample_files_by_language):
     """

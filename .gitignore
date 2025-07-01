@@ -27,7 +27,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-/git_diff.txt
+git_diff.txt
+temporary/
 
 # PyInstaller
 #  Usually these files are written by a small stub bootstrap script and should be
