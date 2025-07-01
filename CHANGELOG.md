@@ -14,6 +14,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Switching to the Abstract Syntax Tree (AST)
 -   [And more...](https://github.com/Artemonim/AgentDocstrings/issues)
 
+## [NextRelease]
+
+## [1.3.1]
+
+### Added
+
+-   **Python Single-Line Docstrings**: Implemented support for identifying and merging the generated table of contents with existing single-line Python docstrings (`"""docstring"""`).
+
+### Fixed
+
+-   **Python Docstring Generation**: Fixed a critical bug where repeatedly processing a Python file with a manual docstring would cause content duplication. The logic has been reworked to ensure correct placement of the generated table of contents relative to `from __future__ import` statements and existing docstrings.
+
+### CI/CD
+
+-   **CI dev**: The CI pipeline now runs on the `dev` branch, with Codecov reports limited to `master`.
+-   **Version check**: Added a new check to prevent accidental version bumps in feature branches.
+
 ## [1.3.0] - 2025-06-30
 
 ### Added

@@ -412,7 +412,7 @@ def process_file(path: Path, verbose: bool = False, beta: bool = False) -> None:
                 idx += 1
             # Check for manual docstring start
             if idx < len(body_lines) and body_lines[idx].strip().startswith(('"""', "'''")):
-                delim = body_lines[idx].strip()
+                delim_line = body_lines[idx].strip()
                 # Ensure it's not an existing auto-generated docstring
                 marker_present = False
                 for i in range(idx, min(idx + 5, len(body_lines))):
@@ -422,12 +422,29 @@ def process_file(path: Path, verbose: bool = False, beta: bool = False) -> None:
                 if not marker_present:
                     # Find end of manual docstring
                     end_idx = None
-                    for j in range(idx + 1, len(body_lines)):
-                        if body_lines[j].strip() == delim:
-                            end_idx = j
-                            break
+                    manual_inner = []
+                    delim = None
+                    
+                    delim_quotes = '"""' if delim_line.startswith('"""') else "'''"
+                    is_single_line = delim_line.endswith(delim_quotes) and delim_line != delim_quotes
+
+                    if is_single_line:
+                        end_idx = idx
+                        content_part = delim_line[len(delim_quotes):-len(delim_quotes)]
+                        if content_part:
+                             manual_inner = [content_part]
+                        delim = delim_quotes
+                    else:
+                        # Multi-line docstring
+                        delim = delim_line
+                        for j in range(idx + 1, len(body_lines)):
+                            if body_lines[j].strip() == delim:
+                                end_idx = j
+                                break
+                        if end_idx is not None:
+                            manual_inner = body_lines[idx + 1:end_idx]
+
                     if end_idx is not None:
-                        manual_inner = body_lines[idx + 1:end_idx]
                         # Compute auto header content lines with correct offset for merge
                         # temp_header_lines holds the auto header lines including delimiters
                         # content_lines length is temp_header_lines minus start/end markers
