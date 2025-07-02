@@ -338,17 +338,33 @@ def get_preserved_header_end_line(lines: List[str], language: str) -> int:
             if line.strip().startswith("package "):
                 return i + 1
         return 0
-    # General check for JS, TS, C#
+    # General check for JS, TS, C#, C++, Java, Kotlin
+    in_block_comment = False
     for i, line in enumerate(lines):
         stripped = line.strip()
-        if not (
-            stripped.startswith(tuple(["//", "/*", "*/"])) # Allow comment blocks
-            or stripped.startswith("using ")
+
+        if in_block_comment:
+            if "*/" in stripped:
+                in_block_comment = False
+            continue
+
+        if stripped.startswith("/*"):
+            if "*/" not in stripped:
+                in_block_comment = True
+            continue
+
+        if (
+            stripped.startswith("//")
             or stripped.startswith("import ")
+            or stripped.startswith("using ")
+            or stripped.startswith("package ")
         ):
-            # ! Stop at the first non-header line (including empty lines)
-            # * Empty lines are not considered preserved headers
-            return i
+            continue
+
+        # If we're not in a block comment and the line is not a recognized
+        # header element, then the header is over. This includes empty lines.
+        return i
+
     return len(lines)
 
 
