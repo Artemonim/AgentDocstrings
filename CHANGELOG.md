@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+-   **Something great**: for sure
+
+## [1.3.2]
+
 ### Fixed
 
 -   **Kotlin Header Preservation**: Fixed a bug where multi-line block comments (`/** ... */`) in Kotlin files were not correctly preserved, leading to malformed docstrings. The header parsing logic now correctly identifies and preserves these comment blocks. (Fixes #9)
