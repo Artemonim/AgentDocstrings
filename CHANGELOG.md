@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+## [1.3.3]
+
+### Fixed
+
+-   **Python Docstring Cleaning**: Improved the `remove_agent_docstring` function to better handle Python docstrings by preserving manual content while removing auto-generated table of contents. The function now correctly identifies and removes only the auto-generated content while maintaining the structure of existing manual docstrings. (fixes #11)
+-   **C-Style Comment Handling**: Enhanced the docstring removal logic for C-style languages (Kotlin, Java, Go, etc.) to be more flexible with comment formatting variations, ensuring proper detection and removal of auto-generated content across different comment styles.
+
+## [1.3.2]
+
+### Fixed
+
+-   **Kotlin Header Preservation**: Fixed a bug where multi-line block comments (`/** ... */`) in Kotlin files were not correctly preserved, leading to malformed docstrings. The header parsing logic now correctly identifies and preserves these comment blocks. (Fixes #9)
+
 ## [1.3.1]
 
 ### Added
