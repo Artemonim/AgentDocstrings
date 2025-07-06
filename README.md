@@ -20,7 +20,7 @@
 
 **Agent Docstrings** is a command-line tool that automatically generates and maintains a "Table of Contents" at the top of your source files. It scans for classes, functions, and methods, creating a summary that provides a high-level overview of the file's structure.
 
-<video src="Doc/AgentDocstringsExample130.mp4" autoplay loop muted width="600"></video>
+<video src="Doc/AgentDocstringsExample130.mp4" autoplay loop muted playsinline width="600" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></video>
 
 This is especially useful for AI-Agents, helping them solve the "cold start" problem of quickly understanding and navigating large, unfamiliar codebases.
 
@@ -69,10 +69,11 @@ Imagine an AI agent tasked with modifying a large, unfamiliar codebase. Its firs
 #### Without Agent Docstrings: The "Blind" Approach
 
 An AI agent opens a file and has no initial context. To understand the file's structure, it must:
+
 1.  Read a large chunk of the file.
 2.  Use tools like `grep_tool` or other search methods to find function and class definitions.
 3.  Analyze and piece together the results to build a mental map of the file.
-This process is slow, api-intensive, and prone to error.
+    This process is slow, api-intensive, and prone to error.
 
 #### With Agent Docstrings: The "Map-First" Approach
 
