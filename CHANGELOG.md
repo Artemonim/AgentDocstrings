@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+### Fixed
+
+-   **Version-Only Change Skipping**: Fixed a bug where files were being unnecessarily modified when only the version number in the auto-generated header differed, while the actual content structure remained unchanged. The tool now performs normalized content comparison that ignores version differences, preventing unnecessary file modifications after Agent Docstrings version updates.
+
 ## [1.3.3]
 
 ### Fixed
