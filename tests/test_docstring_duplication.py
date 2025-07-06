@@ -12,6 +12,7 @@
 import pytest
 import re
 from textwrap import dedent
+from agent_docstrings import __version__
 
 def test_no_docstring_duplication_on_repeated_runs(source_processor) -> None:
     """
@@ -131,7 +132,7 @@ def test_existing_auto_docstring_replacement(source_processor) -> None:
     auto_markers = result_content.count("--- AUTO-GENERATED DOCSTRING ---")
     assert auto_markers == 1, f"Expected 1 auto docstring marker, found {auto_markers}"
     # * Verify the version is updated in the docstring
-    assert "Agent Docstrings v1.3.2" in docstring_text
+    assert f"Agent Docstrings v{__version__}" in docstring_text
     # * Verify that old_function is mentioned only once *within the docstring*
     assert docstring_text.count("old_function()") == 1, "Function should appear only once in docstring"
     assert docstring_text.count("new_function()") == 1, "Function should appear only once in docstring"
