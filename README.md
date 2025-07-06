@@ -39,7 +39,7 @@ This is especially useful for AI-Agents, helping them solve the "cold start" pro
 -   [Limitations and Nuances](#limitations-and-nuances)
 -   [Integration with Development Workflow](#integration-with-development-workflow)
 -   [Development](#development)
--   [Support the Project](#Support)
+-   [Support the Project](#support-the-project)
 -   [Contributing](#contributing)
 -   [License](#license)
 -   [Changelog](#changelog)
