@@ -21,7 +21,6 @@
 **Agent Docstrings** is a command-line tool that automatically generates and maintains a "Table of Contents" at the top of your source files. It scans for classes, functions, and methods, creating a summary that provides a high-level overview of the file's structure.
 
 <img src="Doc/AgentDocstringsExample130.webp" alt="Agent Docstrings Demo" width="600" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
-<noscript><b>Animated demo (WebP) not supported in your browser.</b></noscript>
 
 This is especially useful for AI-Agents, helping them solve the "cold start" problem of quickly understanding and navigating large, unfamiliar codebases.
 
