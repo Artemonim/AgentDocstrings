@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+## [1.3.3]
+
 ### Fixed
 
 -   **Python Docstring Cleaning**: Improved the `remove_agent_docstring` function to better handle Python docstrings by preserving manual content while removing auto-generated table of contents. The function now correctly identifies and removes only the auto-generated content while maintaining the structure of existing manual docstrings. (fixes #11)
