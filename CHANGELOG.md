@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+### Documentation
+
+-   **Contribution Guide**: Added a new `CONTRIBUTING.md` file with detailed guidelines for development workflow and the release process.
+-   **README Update**: Updated `README.md` to link to the new contribution guide and reflect the automated release process.
+
+### CI/CD
+
+-   **Release Automation**: Added a new `release-automation.yml` workflow that automatically creates Git tags, GitHub Releases, and back-merge PRs when release branches are merged to master.
+-   **CI Optimization**: Optimized the main CI pipeline by removing redundant test runs on master branch pushes and adding caching for pip dependencies and Go modules to speed up workflow execution.
+-   **Workflow Efficiency**: Changed CI triggers to run on pushes to `dev` instead of `master`, eliminating duplicate test runs while maintaining comprehensive coverage.
+
 ## [1.3.3]
 
 ### Fixed
@@ -155,35 +166,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Safe operation**: Only modifies auto-generated docstring blocks, preserves existing documentation
 -   **Incremental updates**: Only processes files when changes are detected
 
-### Technical Features
-
--   Uses `from __future__ import annotations` for forward compatibility
--   Compatible with `typing.Union` and `typing.Tuple` for Python 3.8/3.9
--   No external dependencies - built on Python standard library only
--   Comprehensive test suite with pytest
--   Full type checking support with mypy
--   Code formatting with black
--   Proper packaging for PyPI distribution
-
-### Configuration
-
--   `.agent-docstrings-ignore`: Specify files and patterns to exclude
--   `.agent-docstrings-include`: Specify files and patterns to include (whitelist mode)
--   Automatic integration with existing `.gitignore` files
--   Support for glob patterns in configuration files
-
-### Documentation
-
--   Comprehensive README with usage examples
--   Integration guides for pre-commit hooks and CI/CD
--   Development setup instructions
--   API documentation for programmatic usage
-
-## Version History
-
--   **1.0.1** - Parser and docstring handling improvements
--   **1.0.0** - Initial stable release with multi-language support and filtering system
--   **0.4.0** - (internal)
--   **0.3.0** - (internal)
--   **0.2.0** - (internal)
--   **0.1.0** - Initial development version (internal)
