@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+### Fixed
+
+-   **Deterministic Processing**: Fixed a critical bug that caused line numbers in the table of contents to change on every run. This was due to inconsistent newline handling after removing an existing agent docstring. The process is now fully idempotent.
+-   **Robust Docstring Removal**: Improved the detection logic to correctly find and remove all agent-generated docstrings, even when located in the middle of a file or when multiple (erroneous) docstrings were present. This prevents docstring duplication on repeated runs.
+-   **Manual Docstring Preservation**: Ensured that manual docstrings are no longer reformatted or modified unless they are being merged with an agent-generated table of contents.
+-   **Version-Only Change Skipping**: Fixed a bug where files were being unnecessarily modified when only the version number in the auto-generated header differed, while the actual content structure remained unchanged. The tool now performs normalized content comparison that ignores version differences, preventing unnecessary file modifications after Agent Docstrings version updates.
+
 ## [1.3.3]
 
 ### Fixed
