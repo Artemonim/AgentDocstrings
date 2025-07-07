@@ -1,14 +1,16 @@
 name: Release Automation
 
 on:
-  push:
-    branches:
-      - master
+  pull_request:
+    types: [closed]
 
 jobs:
   create_release:
-    # We only run it for merge commits from branches release/*
-    if: startsWith(github.event.head_commit.message, 'Merge pull request') && contains(github.event.head_commit.message, 'from release/')
+    # We only run it for merged PRs from a release/* branch into master.
+    if: |
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'master' &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
     permissions:
       contents: write # to create tags and releases
@@ -17,7 +19,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # I need a complete history to read the tags and create a PR
+          # We check out the master branch, which is the state after the merge.
+          ref: 'master'
           fetch-depth: 0
 
       - name: Get Version
