@@ -75,16 +75,16 @@ This project uses a GitFlow-like branching model.
 
 ### Updating the Changelog
 
-For every change that affects the user, you must add an entry to the `CHANGELOG.md` file under the `[NextRelease]` section. Follow the format of existing entries.
+For every change that affects the user, you must add an entry to the `CHANGELOG.md` file under the `[NextRelease]` section. Follow the format of existing entries. If your pull request resolves an existing issue, please link it in the changelog entry `(fixes #123)` or `(closes #456)`).
 
 Example:
 
 ```markdown
 ## [NextRelease]
 
-### TypeOfChange
+### Fixed
 
--   **Your Awesome Feature**: A brief description of what you've added.
+-   **My Awesome Fix**: A brief description of what you've fixed (fixes #78).
 ```
 
 ## Release Process (for maintainers)
