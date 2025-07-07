@@ -38,6 +38,24 @@ def test_process_file_determinism_with_manual_python_docstring(tmp_path):
     assert content_after_first_run == content_after_second_run
 
 
+def test_file_is_unchanged_if_no_docstring_added(tmp_path):
+    """
+    Tests that a Python file with only a manual docstring and no classes/functions
+    is not modified by the agent.
+    """
+    original_content = '"""This is a manual docstring."""\\n'
+    test_file_path = tmp_path / "test.py"
+    test_file_path.write_text(original_content, encoding="utf-8")
+
+    # Run processing
+    process_file(test_file_path)
+    content_after_run = test_file_path.read_text(encoding="utf-8")
+
+    # Assert that the file content is identical
+    assert original_content == content_after_run, \
+        "File should not be modified if no agent docstring is added."
+
+
 def test_process_file_determinism(sample_files_by_language):
     """
     Processes each sample file three times and asserts that after the first processing,

@@ -16,9 +16,11 @@ body:
           label: Pre-submission Checklist
           description: Please confirm you have completed these steps
           options:
+              - label: I have read the [README.md](../README.md) and relevant documentation
+                required: true
               - label: I have searched existing issues and discussions for similar questions
                 required: true
-              - label: I have read the [README.md](../README.md) and relevant documentation
+              - label: I have searched for existing open and closed issues to see if this feature has been requested before
                 required: true
               - label: This is not a bug report (use Bug Report template for bugs)
                 required: true

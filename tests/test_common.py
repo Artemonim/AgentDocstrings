@@ -231,17 +231,17 @@ class FirstClass:
         assert result == "class Test: pass"
 
     def test_header_not_at_start(self) -> None:
-        """Test that headers not at the start of file are not stripped."""
+        """Test that agent docstrings anywhere in the file are stripped."""
         content = f'''class SomeClass:
     pass
 
 """{DOCSTRING_START_MARKER}
-    - This should not be stripped
+    - This should be stripped
 {DOCSTRING_END_MARKER}"""'''
         
         result = remove_agent_docstring(content, "python")
         assert "class SomeClass:" in result
-        assert DOCSTRING_START_MARKER in result
+        assert DOCSTRING_START_MARKER not in result
 
     @pytest.mark.parametrize("language", ["python", "kotlin", "javascript", "typescript", "csharp", "cpp"])
     def test_invalid_language_patterns(self, language: str) -> None:

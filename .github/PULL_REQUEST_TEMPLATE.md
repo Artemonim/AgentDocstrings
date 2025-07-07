@@ -1,7 +1,6 @@
 <!--
 Thank you for contributing to AgentDocstringsGenerator!
 
-Please provide a clear and concise description of your changes.
 If your PR is a work in progress, please mark it as a draft.
 -->
 
@@ -20,34 +19,13 @@ Please check the box that best describes the nature of your change.
 -   [ ] 🎨 **Style**: Changes that do not affect the meaning of the code (white-space, formatting, etc.).
 -   [ ] ⏪ **Revert**: Reverts a previous commit.
 
----
-
-## Related Issue
-
-<!--
-If this PR addresses a specific issue, please link it here.
-For example: `Fixes #123` or `Closes #123`.
-If there is no related issue, please state that.
--->
-
--   ***
-
-## Description
-
-<!--
-Provide a clear and concise summary of the changes.
-Explain the "what" and "why" of your contribution.
--->
-
--
-
 ## Checklist
 
 <!--
 Go over all the following points, and put an `x` in all the boxes that apply.
 -->
 
--   [ ] My code follows the style guidelines of this project.
--   [ ] I have performed a self-review of my own code.
+-   [ ] My changes follows the [Contribution Guide](CONTRIBUTING.md).
+-   [ ] I have updated `CHANGELOG.md` under the `[NextRelease]` section.
 -   [ ] New unit tests have been added to cover the changes.
--   [ ] Manual testing has been performed
+-   [ ] Manual testing has been performed to verify the changes.

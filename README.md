@@ -20,7 +20,7 @@
 
 **Agent Docstrings** is a command-line tool that automatically generates and maintains a "Table of Contents" at the top of your source files. It scans for classes, functions, and methods, creating a summary that provides a high-level overview of the file's structure.
 
-<video src="Doc/AgentDocstringsExample130.mp4" autoplay loop muted width="600"></video>
+<img src="Doc/AgentDocstringsExample130.webp" alt="Agent Docstrings Demo" width="600" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
 
 This is especially useful for AI-Agents, helping them solve the "cold start" problem of quickly understanding and navigating large, unfamiliar codebases.
 
@@ -69,10 +69,11 @@ Imagine an AI agent tasked with modifying a large, unfamiliar codebase. Its firs
 #### Without Agent Docstrings: The "Blind" Approach
 
 An AI agent opens a file and has no initial context. To understand the file's structure, it must:
+
 1.  Read a large chunk of the file.
 2.  Use tools like `grep_tool` or other search methods to find function and class definitions.
 3.  Analyze and piece together the results to build a mental map of the file.
-This process is slow, api-intensive, and prone to error.
+    This process is slow, api-intensive, and prone to error.
 
 #### With Agent Docstrings: The "Map-First" Approach
 
@@ -318,7 +319,7 @@ This project uses [bump-my-version](https://github.com/callowayproject/bump-my-v
 
 The tool is configured in `pyproject.toml` to automatically update the version string in `agent_docstrings/__init__.py`, `pyproject.toml`, and `CHANGELOG.md`.
 
-**Note**: Per project configuration, this tool only modifies the files. You will need to commit and tag the changes manually after bumping the version.
+**Note**: Running `bump-my-version`, you need to create a release branch and a pull request to `master`. The process of tagging, creating a GitHub Release, and publishing to PyPI is automated. For full details, see the [Contribution Guide](CONTRIBUTING.md).
 
 ## Support the Project
 
@@ -336,11 +337,15 @@ Thank you for your support!
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please see our [**Contribution Guide**](CONTRIBUTING.md) for detailed instructions on how to get started, our development workflow, and coding standards.
+
+In short:
+
+1. Fork the repo and create your branch from `dev`.
+2. Add your feature or fix.
+3. Add/update tests.
+4. Update `CHANGELOG.md`.
+5. Submit a pull request to `dev`.
 
 ## License
 
