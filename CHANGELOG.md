@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Release Automation**: Added a new `release-automation.yml` workflow that automatically creates Git tags, GitHub Releases, and back-merge PRs when release branches are merged to master.
 -   **CI Optimization**: Optimized the main CI pipeline by removing redundant test runs on master branch pushes and adding caching for pip dependencies and Go modules to speed up workflow execution.
 -   **Workflow Efficiency**: Changed CI triggers to run on pushes to `dev` instead of `master`, eliminating duplicate test runs while maintaining comprehensive coverage.
+-   **Version Check Precision**: Improved the version bump detection in CI to specifically check version changes in `pyproject.toml` and `agent_docstrings/__init__.py`, preventing false positives from other file modifications.
 
 ## [1.3.3]
 
@@ -165,4 +166,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Programmatic API**: Import and use in other Python projects
 -   **Safe operation**: Only modifies auto-generated docstring blocks, preserves existing documentation
 -   **Incremental updates**: Only processes files when changes are detected
-

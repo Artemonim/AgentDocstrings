@@ -118,9 +118,24 @@ jobs:
 
             - name: Verify that version was not bumped
               run: |
-                  if ! git diff --quiet origin/dev HEAD -- pyproject.toml; then
-                      echo "::error::Version in pyproject.toml was changed in a PR to dev."
+                  echo "Checking for version changes in pyproject.toml..."
+                  DEV_PYPROJECT_VERSION=$(git show origin/dev:pyproject.toml | grep '^version = ' | awk -F'"' '{print $2}')
+                  HEAD_PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | awk -F'"' '{print $2}')
+
+                  if [ "$DEV_PYPROJECT_VERSION" != "$HEAD_PYPROJECT_VERSION" ]; then
+                      echo "::error::Version in pyproject.toml was changed in a PR to dev. (dev: $DEV_PYPROJECT_VERSION, HEAD: $HEAD_PYPROJECT_VERSION)"
                       echo "Version bumping should only happen in a release PR to master."
                       exit 1
                   fi
                   echo "Version check passed for pyproject.toml"
+
+                  echo "Checking for version changes in agent_docstrings/__init__.py..."
+                  DEV_INIT_VERSION=$(git show origin/dev:agent_docstrings/__init__.py | grep '^__version__ = ' | awk -F'"' '{print $2}')
+                  HEAD_INIT_VERSION=$(grep '^__version__ = ' agent_docstrings/__init__.py | awk -F'"' '{print $2}')
+
+                  if [ "$DEV_INIT_VERSION" != "$HEAD_INIT_VERSION" ]; then
+                      echo "::error::Version in agent_docstrings/__init__.py was changed in a PR to dev. (dev: $DEV_INIT_VERSION, HEAD: $HEAD_INIT_VERSION)"
+                      echo "Version bumping should only happen in a release PR to master."
+                      exit 1
+                  fi
+                  echo "Version check passed for agent_docstrings/__init__.py"
