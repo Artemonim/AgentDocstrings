@@ -4,18 +4,18 @@ on:
     # Run on pull requests into dev or master.
     pull_request:
         branches: [master, dev]
-    # After a PR is merged, the merge commit is pushed to master; we still want tests + coverage once on the resulting commit.
+    # Push to dev also triggers tests to ensure dev branch is always stable
     push:
-        branches: [master]
+        branches: [dev]
 
 jobs:
     test:
         # * Runs unit-test matrix:
-        #   - Always on pull_request (dev or master)
-        #   - On push to master (after merge)
+        #   - On pull_request (to dev or master)
+        #   - On push to dev
         if: |
             github.event_name == 'pull_request' ||
-            (github.event_name == 'push' && github.ref == 'refs/heads/master')
+            (github.event_name == 'push' && github.ref == 'refs/heads/dev')
         name: Test on Python ${{ matrix.python-version }} (beta=${{ matrix.beta }})
         runs-on: ubuntu-latest
         strategy:
@@ -25,7 +25,7 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
-              # For pull_request we check out the PR commit; for push we stay on the pushed ref (master).
+              # For pull_request we check out the PR commit; for push we stay on the pushed ref (dev).
               with:
                   ref: ${{ github.event.pull_request.head.sha }}
 
@@ -33,6 +33,14 @@ jobs:
               uses: actions/setup-go@v5
               with:
                   go-version: "1.22"
+
+            - name: Cache Go modules
+              uses: actions/cache@v4
+              with:
+                  path: ~/go/pkg/mod
+                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                  restore-keys: |
+                      ${{ runner.os }}-go-
 
             - name: Build Go parsers
               run: pwsh -File ./build_goparser.ps1
@@ -42,6 +50,14 @@ jobs:
               uses: actions/setup-python@v5
               with:
                   python-version: ${{ matrix.python-version }}
+
+            - name: Cache pip
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/pip
+                  key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pip-
 
             - name: Install dependencies
               run: |
@@ -67,9 +83,7 @@ jobs:
 
     report:
         # * Only for master: either in PR to master (so reviewers see comment) or after merge push to master.
-        if: |
-            (github.event_name == 'pull_request' && github.base_ref == 'master') ||
-            (github.event_name == 'push' && github.ref == 'refs/heads/master')
+        if: github.event_name == 'pull_request' && github.base_ref == 'master'
         name: Report Coverage
         runs-on: ubuntu-latest
         needs: test

@@ -1,0 +1,56 @@
+name: Release Automation
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  create_release:
+    # We only run it for merge commits from branches release/*
+    if: startsWith(github.event.head_commit.message, 'Merge pull request') && contains(github.event.head_commit.message, 'from release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to create tags and releases
+      pull-requests: write # to create PR
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # I need a complete history to read the tags and create a PR
+          fetch-depth: 0
+
+      - name: Get Version
+        id: get_version
+        run: |
+          # Извлекаем версию из pyproject.toml
+          version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "version=${version}" >> $GITHUB_OUTPUT
+
+      - name: Extract Changelog Notes
+        id: changelog
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          version: ${{ steps.get_version.outputs.version }}
+          path: ./CHANGELOG.md
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: v${{ steps.get_version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changes }}
+          draft: false
+          prerelease: false
+
+      - name: Create back-merge PR to dev
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: "master"
+          destination_branch: "dev"
+          pr_title: "Post-Release: Merge master back into dev"
+          pr_body: "Automated PR to sync master back into dev after release v${{ steps.get_version.outputs.version }}."
+          github_token: ${{ secrets.GITHUB_TOKEN }} 
