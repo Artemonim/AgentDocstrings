@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+### Header
+
+-   **subtitle**: describtion
+
+## [1.3.4]
+
 ### Fixed
 
 -   **Deterministic Processing**: Fixed a critical bug that caused line numbers in the table of contents to change on every run. This was due to inconsistent newline handling after removing an existing agent docstring. The process is now fully idempotent.
