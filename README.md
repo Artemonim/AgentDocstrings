@@ -319,7 +319,7 @@ This project uses [bump-my-version](https://github.com/callowayproject/bump-my-v
 
 The tool is configured in `pyproject.toml` to automatically update the version string in `agent_docstrings/__init__.py`, `pyproject.toml`, and `CHANGELOG.md`.
 
-**Note**: Per project configuration, this tool only modifies the files. You will need to commit and tag the changes manually after bumping the version.
+**Note**: Running `bump-my-version`, you need to create a release branch and a pull request to `master`. The process of tagging, creating a GitHub Release, and publishing to PyPI is automated. For full details, see the [Contribution Guide](CONTRIBUTING.md).
 
 ## Support the Project
 
@@ -337,11 +337,15 @@ Thank you for your support!
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please see our [**Contribution Guide**](CONTRIBUTING.md) for detailed instructions on how to get started, our development workflow, and coding standards.
+
+In short:
+
+1. Fork the repo and create your branch from `dev`.
+2. Add your feature or fix.
+3. Add/update tests.
+4. Update `CHANGELOG.md`.
+5. Submit a pull request to `dev`.
 
 ## License
 

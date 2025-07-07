@@ -18,9 +18,9 @@ body:
           options:
               - label: I have read the [README.md](../README.md)
                 required: true
-              - label: I am using the latest version of Agent Docstrings
+              - label: I am using the [latest version of Agent Docstrings](https://github.com/Artemonim/AgentDocstrings/releases/latest)
                 required: true
-              - label: I have searched for existing issues to see if this feature has been requested before
+              - label: I have searched for existing open and closed issues to see if this feature has been requested before
                 required: true
               - label: This feature request is not a bug report (use Bug Report template for bugs)
                 required: true

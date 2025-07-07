@@ -164,5 +164,5 @@ replace = '__version__ = "{new_version}"'
 
 [[tool.bumpversion.files]]
 filename = "CHANGELOG.md"
-search = "## [{current_version}]"
-replace = "## [{new_version}]\n\n### Header\n\n-   **subtitle**: describtion\n\n## [{current_version}]" 
+search = "## [NextRelease]"
+replace = "## [NextRelease]\n\n### Header\n\n-   **subtitle**: describtion\n\n## [{new_version}]" 
