@@ -18,9 +18,9 @@ body:
           options:
               - label: I have read the [README.md](../README.md)
                 required: true
-              - label: I have searched for existing issues that might be related to this bug
+              - label: I am using the [latest version of Agent Docstrings](https://github.com/Artemonim/AgentDocstrings/releases/latest)
                 required: true
-              - label: I am using the latest version of Agent Docstrings
+              - label: I have searched for existing issues that might be related to this bug
                 required: true
 
     - type: dropdown
