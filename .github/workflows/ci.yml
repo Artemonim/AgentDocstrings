@@ -107,7 +107,8 @@ jobs:
 
     check-version:
         # * Only on PRs into dev: prevent accidental version bumps.
-        if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+        # This check is skipped for the automated post-release merge from master back to dev.
+        if: github.event_name == 'pull_request' && github.base_ref == 'dev' && github.head_ref != 'master'
         name: Check for accidental version bump
         runs-on: ubuntu-latest
         steps:

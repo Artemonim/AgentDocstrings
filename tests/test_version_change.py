@@ -39,10 +39,9 @@ def test_no_change_on_version_mismatch(tmp_path: Path):
     # 4. Process the file again
     process_file(py_file)
     content_after_second_run = py_file.read_text(encoding="utf-8")
-
     # 5. Assert the file content has NOT changed
     assert content_after_second_run == old_version_content
-    assert f"v{__version__}" not in content_after_second_run
+    assert __version__ not in content_after_second_run
     assert "v0.0.1" in content_after_second_run
 
     # 6. Now, modify the structure of the file
