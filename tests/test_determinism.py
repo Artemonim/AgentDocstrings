@@ -56,6 +56,32 @@ def test_file_is_unchanged_if_no_docstring_added(tmp_path):
         "File should not be modified if no agent docstring is added."
 
 
+def test_determinism_with_short_manual_python_docstring(tmp_path):
+    """
+    Tests that a short manual Python docstring is merged correctly without adding
+    extra newlines and remains unchanged on subsequent runs. This specifically
+    checks for the bug where newlines were added on each run.
+    """
+    original_content = '"""A short manual docstring."""\\n\\ndef a(): pass\\n'
+    test_file_path = tmp_path / "test.py"
+    test_file_path.write_text(original_content, encoding="utf-8")
+
+    # First run
+    process_file(test_file_path)
+    content_after_first_run = test_file_path.read_text(encoding="utf-8")
+
+    # Check that the manual docstring was not mangled with extra newlines
+    assert '"A short manual docstring."\\n"""' not in content_after_first_run.replace(" ","")
+    
+    # Second run
+    process_file(test_file_path)
+    content_after_second_run = test_file_path.read_text(encoding="utf-8")
+
+    # Assert that the second run made no changes
+    assert content_after_first_run == content_after_second_run, \
+        "File should not be modified on the second run after merging a manual docstring."
+
+
 def test_process_file_determinism(sample_files_by_language):
     """
     Processes each sample file three times and asserts that after the first processing,

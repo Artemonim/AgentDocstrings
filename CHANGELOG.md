@@ -16,9 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
-### Header
+### Added
 
--   **subtitle**: describtion
+-   **Placeholder-Based Line Numbering**: Implemented a new placeholder system (`OFFSET_PLACEHOLDER`) for calculating line numbers in generated headers. This ensures deterministic line numbering by first generating headers with placeholders, then calculating the actual offset based on the final header size, and finally replacing placeholders with accurate line numbers.
+
+### Fixed
+
+-   **Deterministic Line Numbering**: Completely reworked the line number calculation algorithm to ensure consistent and accurate line numbers across multiple runs. The new approach uses a two-pass system that measures rather than guesses header sizes, ensuring deterministic results.
+-   **Docstring Merging Logic**: Improved the logic for merging manual docstrings with auto-generated content. Manual content is now properly preserved and formatted without adding unnecessary newlines or reformatting.
+-   **Multi-Pass Docstring Removal**: Enhanced the `remove_agent_docstring` function to handle complex scenarios where multiple agent-generated docstrings might be present, preventing duplication issues on repeated runs.
+-   **Whitespace Normalization**: Added proper whitespace handling in content comparison to prevent unnecessary file modifications when only minor whitespace differences exist.
+-   **Manual Content Extraction**: Improved the extraction of manual docstring content by properly handling the inner content within triple quotes, preserving original formatting and indentation.
+
+### Testing
+
+-   **New Test Cases**: Added comprehensive test cases for placeholder usage, short manual docstring handling, and merged multiline docstring preservation to ensure the new algorithms work correctly across various scenarios.
 
 ## [1.3.4]
 
