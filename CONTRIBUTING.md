@@ -95,7 +95,7 @@ The release process is partially automated.
 2.  Update the version using `bump-my-version`:
     ```bash
     # For a patch, minor, or major release
-    bump-my-version patch/minor/major
+    bump-my-version bump patch/minor/major
     ```
     This command will update the version in `pyproject.toml` and update the `CHANGELOG.md`, replacing `[NextRelease]` with the new version tag.
 3.  Commit the version bump: `git commit -am "chore: release v.x.y.z"`

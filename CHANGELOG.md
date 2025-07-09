@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [NextRelease]
 
+### Header
+
+-   **subtitle**: describtion
+
+## [1.3.5]
+
 ### Added
 
 -   **Placeholder-Based Line Numbering**: Implemented a new placeholder system (`OFFSET_PLACEHOLDER`) for calculating line numbers in generated headers. This ensures deterministic line numbering by first generating headers with placeholders, then calculating the actual offset based on the final header size, and finally replacing placeholders with accurate line numbers.
