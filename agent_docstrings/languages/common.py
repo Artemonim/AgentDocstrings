@@ -70,15 +70,23 @@ def remove_agent_docstring(text: str, language: str) -> str:
             )
             cleaned_docstring = auto_content_pattern.sub('', docstring_content)
             
-            # Check what's left after removing the agent part
-            temp_cleaned = cleaned_docstring.replace('"""', '').replace("'''", '').strip()
-            
-            if not temp_cleaned:
-                return ''  # Docstring was purely agent-generated, so remove it.
+            # After removing the agent part, check if what's left is an empty docstring.
+            # To do this correctly, we need to inspect the content *inside* the quotes.
+            temp_content = cleaned_docstring.strip()
+            quotes = None
+            if temp_content.startswith('"""') and temp_content.endswith('"""'):
+                quotes = '"""'
+            elif temp_content.startswith("'''") and temp_content.endswith("'''"):
+                quotes = "'''"
 
-            # There was a manual part. Reformat it cleanly into a single-line docstring
-            # (which can contain newlines). This avoids the newline-adding bug.
-            return f'"""{temp_cleaned}"""'
+            if quotes:
+                inner_content = temp_content[len(quotes):-len(quotes)].strip()
+                if not inner_content:
+                    return ''  # The docstring is now empty, so remove it entirely.
+            
+            # If we are here, there is user content left. Return the cleaned docstring
+            # with its original quotes and formatting intact.
+            return cleaned_docstring
 
         # * Match ANY triple-quoted block (single or double quotes) anywhere in the text.
         docstring_pattern = re.compile(
