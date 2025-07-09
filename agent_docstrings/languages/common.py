@@ -63,10 +63,7 @@ def remove_agent_docstring(text: str, language: str) -> str:
             if DOCSTRING_START_MARKER not in docstring_content:
                 return docstring_content
 
-            # * Match the auto-generated block inside the docstring, including any leading/
-            # * trailing whitespace and the trailing newline (if present). Use single
-            # * backslashes so that ``\s`` is interpreted by the *regex* engine as a
-            # * whitespace token instead of a literal backslash followed by ``s``.
+            # * Match the auto-generated block inside the docstring
             auto_content_pattern = re.compile(
                 rf"\s*{start_marker_escaped}[\s\S]*?{end_marker_escaped}\s*\n?",
                 re.DOTALL,
@@ -79,21 +76,17 @@ def remove_agent_docstring(text: str, language: str) -> str:
             if not temp_cleaned:
                 return ''  # Docstring was purely agent-generated, so remove it.
 
-            # There was a manual part. Reformat it cleanly.
-            return f'"""\\n{temp_cleaned}\\n"""'
+            # There was a manual part. Reformat it cleanly into a single-line docstring
+            # (which can contain newlines). This avoids the newline-adding bug.
+            return f'"""{temp_cleaned}"""'
 
         # * Match ANY triple-quoted block (single or double quotes) anywhere in the text.
-        # * The former pattern anchored at ``^`` missed auto-generated blocks that were
-        # * not located at the very start of the file, leading to duplication issues.
         docstring_pattern = re.compile(
             r'("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')',
             re.DOTALL,
         )
-        # Iteratively clean the text
+        # A single pass is enough with the improved replacer logic.
         cleaned_text = docstring_pattern.sub(replacer, text)
-        # * Run a second pass to handle cases where two docstrings appear back-to-back,
-        # * which can happen after removing an intermediary block.
-        cleaned_text = docstring_pattern.sub(replacer, cleaned_text)
         # * Remove leading whitespace that may be left after docstring removal
         # * to ensure consistent line numbering between runs
         cleaned_text = cleaned_text.lstrip('\n')
