@@ -2,7 +2,8 @@
 
 [![PyPI version](https://badge.fury.io/py/agent-docstrings.svg)](https://badge.fury.io/py/agent-docstrings)
 [![Python versions](https://img.shields.io/pypi/pyversions/agent-docstrings.svg)](https://pypi.org/project/agent-docstrings/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT-blue)
+![Artemonim](https://img.shields.io/badge/Artemonim's-Agent%20Tools-purple.svg)
 
 <!-- GitHub stats -->
 
@@ -23,6 +24,14 @@
 <img src="Doc/AgentDocstringsExample130.webp" alt="Agent Docstrings Demo" width="600" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
 
 This is especially useful for AI-Agents, helping them solve the "cold start" problem of quickly understanding and navigating large, unfamiliar codebases.
+
+## Part of the Artemonim's Agent Tools Ecosystem
+
+Agent Compass is part of the larger **[Artemonim's Agent Tools](https://github.com/Artemonim/AgentTools)** ecosystem:
+
+-   **[Agent Compass](https://github.com/Artemonim/AgentCompass)** — A comprehensive policy framework for AI-assisted development in Cursor IDE
+-   **Agent Enforcer** _(Coming July 2025)_ — Automated code quality verification
+-   **Agent Viewport** _(Coming summer 2025)_ — UI markup understanding for AI assistants
 
 ---
 
