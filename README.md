@@ -30,7 +30,7 @@ This is especially useful for AI-Agents, helping them solve the "cold start" pro
 Agent Compass is part of the larger **[Artemonim's Agent Tools](https://github.com/Artemonim/AgentTools)** ecosystem:
 
 -   **[Agent Compass](https://github.com/Artemonim/AgentCompass)** — A comprehensive policy framework for AI-assisted development in Cursor IDE
--   **Agent Enforcer** _(Coming July 2025)_ — Automated code quality verification
+-   **[Agent Enforcer](https://github.com/Artemonim/AgentEnforcer)** — Automated code quality verification
 -   **Agent Viewport** _(Coming summer 2025)_ — UI markup understanding for AI assistants
 
 ---
