@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/agent-docstrings.svg)](https://badge.fury.io/py/agent-docstrings)
 [![Python versions](https://img.shields.io/pypi/pyversions/agent-docstrings.svg)](https://pypi.org/project/agent-docstrings/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Artemonim](https://img.shields.io/badge/Artemonim's-Agent%20Tools-purple.svg)
 
 <!-- GitHub stats -->
@@ -17,6 +17,10 @@
 [![Typed with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 [![codecov](https://codecov.io/gh/Artemonim/AgentDocstrings/branch/master/graph/badge.svg)](https://codecov.io/gh/Artemonim/AgentDocstrings)
 
+> [!CAUTION]
+> **This project is archived.**
+> With modern LLMs in Cursor IDE, a standalone "docstrings generator" provides little practical value, so the project is no longer maintained.
+
 # Agent Docstrings: Automatic Code Summaries
 
 **Agent Docstrings** is a command-line tool that automatically generates and maintains a "Table of Contents" at the top of your source files. It scans for classes, functions, and methods, creating a summary that provides a high-level overview of the file's structure.
@@ -30,8 +34,8 @@ This is especially useful for AI-Agents, helping them solve the "cold start" pro
 Agent Compass is part of the larger **[Artemonim's Agent Tools](https://github.com/Artemonim/AgentTools)** ecosystem:
 
 -   **[Agent Compass](https://github.com/Artemonim/AgentCompass)** — A comprehensive policy framework for AI-assisted development in Cursor IDE
--   **[Agent Enforcer](https://github.com/Artemonim/AgentEnforcer)** — Automated code quality verification
--   **Agent Viewport** _(Coming summer 2025)_ — UI markup understanding for AI assistants
+-   **[Agent Enforcer 2](https://github.com/Artemonim/AgentEnforcer2)** — Local CI blueprint and reference architecture
+-   **Agent Viewport** _(On Hold / Uncertain)_ — UI markup understanding concept for AI assistants
 
 ---
 
@@ -332,15 +336,12 @@ The tool is configured in `pyproject.toml` to automatically update the version s
 
 ## Support the Project
 
-Agent Docstrings is an independent open-source project. If you find this tool useful and want to support its ongoing development, your help would be greatly appreciated.
+This project is archived. If you still find it useful and want to support my work, thank you!
 
-Here are a few ways you can contribute:
+You can support my work in two ways:
 
--   **Give a Star:** The simplest way to show your support is to star the project on [GitHub](https://github.com/Artemonim/AgentDocstrings)! It increases the project's visibility.
--   **Support My Work:** Your financial contribution helps me dedicate more time to improving this tool and creating other open-source projects. On my [**Boosty page**](https://boosty.to/artemonim), you can:
-    -   Make a **one-time donation** to thank me for this specific project.
-    -   Become a **monthly supporter** to help all of my creative endeavors.
--   **Try a Recommended Tool:** This project was inspired by my work with LLMs. If you're looking for a great service to work with multiple neural networks, check out [**Syntx AI**](https://t.me/syntxaibot?start=aff_157453205). Using my referral link is another way to support my work at no extra cost to you.
+-   **Give a Star:** Star the repositories you use on GitHub.
+-   **Support on Sponsr:** Support me on [Sponsr](https://sponsr.ru/artemonim/).
 
 Thank you for your support!
 
